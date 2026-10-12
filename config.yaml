@@ -1,0 +1,188 @@
+# Veille BOAMP pour BulQ : critères de recherche et de score.
+# Tout se règle ici, sans toucher au code.
+#
+# Règles d'écriture des mots-clés :
+# - la recherche ignore la casse, les accents et la ponctuation ;
+# - chaque mot accepte un « s » ou un « x » final (« logiciel » trouve « logiciels ») ;
+# - une expression de plusieurs mots doit apparaître telle quelle (même ordre).
+
+api:
+  url: "https://boamp-datadila.opendatasoft.com/api/explore/v2.1/catalog/datasets/boamp/records"
+  # Natures d'avis retenues (champ `nature`) et leur libellé dans l'e-mail.
+  natures:
+    APPEL_OFFRE: "Avis de marché"
+    PRE-INFORMATION: "Avis informatif (signal précoce)"
+  # Fenêtre de publication analysée chaque jour.
+  fenetre_heures: 48
+  taille_page: 100
+  delai_secondes: 60
+
+dates:
+  fuseau: "Europe/Paris"
+  # Alerte normale si la date limite est dans N jours ou plus.
+  jours_alerte: 7
+  # « Urgent » entre jours_urgent et jours_alerte - 1 ; ignoré en dessous.
+  jours_urgent: 3
+
+seuils:
+  a_examiner: 7   # score >= 7
+  a_verifier: 4   # 4 <= score < 7 ; en dessous : journal seulement
+
+# Groupes de mots-clés (section 2.3 du cahier des charges).
+mots_cles:
+  A:  # le produit
+    - logiciel
+    - progiciel
+    - solution logicielle
+    - saas
+    - plateforme
+    - application
+    - outil numerique
+  B:  # le domaine
+    - gestion des marches publics
+    - commande publique
+    - passation
+    - redaction des marches
+    - redaction des contrats
+    - analyse des offres
+    - notation des offres
+    - tableau comparatif
+    - chiffrage
+    - estimation
+    - bibliotheque de prix
+    - base de prix
+    - bordereau de prix
+    - achat
+    - e-sourcing
+    - source to contract
+    - gestion des fournisseurs
+    - suivi des marches
+  C:  # signal fort, suffit seul
+    - logiciel de gestion des marches
+    - logiciel de redaction des marches
+    - solution de gestion des marches publics
+    - outil d'aide a la redaction
+    - logiciel d'analyse des offres
+    - logiciel de chiffrage
+
+# Formules juridiques ou administratives présentes dans presque tous les avis,
+# effacées du texte avant toute recherche (elles contiennent « commande
+# publique », « passation », « application », « plateforme », « achat »…).
+neutraliser:
+  - code de la commande publique
+  - en application
+  - application des articles
+  - application de l'article
+  - application du code
+  - procedure de passation
+  - passation de marches subsequents
+  - passation des marches subsequents
+  - en vue de la passation
+  - centrale d'achat
+  - plateforme des achats de l'etat
+  - plateforme de dematerialisation
+  - plateforme achatpublic
+  - plateforme marches publics
+  - plateforme des marches publics
+  - plateforme de telechargement
+
+# Règles de score, évaluées dans l'ordre. Types disponibles :
+#   cpv           : un code CPV de la liste est présent (hiérarchie CPV respectée :
+#                   48000000 couvre tous les codes 48xxxxxx)
+#   mots          : au moins un mot d'un des groupes listés
+#   mots_croises  : au moins un mot de CHAQUE groupe listé
+#   cpv_et_mots   : un CPV de la liste ET au moins un mot d'un des groupes
+#   acheteur      : un des termes figure dans le nom de l'acheteur
+regles:
+  - id: cpv_passation
+    libelle: "CPV 48490000 (logiciels de passation de marchés)"
+    type: cpv
+    codes: ["48490000"]
+    points: 5
+
+  - id: cpv_moyen
+    libelle: "CPV logiciel de projet ou services logiciels"
+    type: cpv
+    codes: ["48331000", "72260000", "72263000"]
+    points: 3
+
+  - id: mots_groupe_c
+    libelle: "mot-clé fort (groupe C)"
+    type: mots
+    groupes: [C]
+    points: 4
+
+  - id: mots_groupe_a_b
+    libelle: "mots-clés produit + domaine (groupes A et B)"
+    type: mots_croises
+    groupes: [A, B]
+    # Les deux mots doivent être dans le même champ et séparés d'au plus
+    # N mots ; supprimer la ligne pour accepter n'importe quelle distance.
+    distance_max: 12
+    points: 4
+
+  # CPV « faibles » : ne comptent que croisés avec un mot-clé.
+  - id: cpv_faible_croise
+    libelle: "CPV informatique générique croisé avec un mot-clé"
+    type: cpv_et_mots
+    codes: ["48000000", "72000000", "79418000"]
+    groupes: [A, B, C]
+    points: 1
+
+  - id: acheteur_construction
+    libelle: "acheteur lié à la construction"
+    type: acheteur
+    termes: [oph, office public de l'habitat, bailleur, sem, habitat, amenagement, grands projets, oppic]
+    points: 2
+
+# Mots d'exclusion : chaque mot trouvé retire `points` (une seule fois par mot).
+#   champs : où chercher (objet, description) ; défaut : les deux.
+#   sauf   : expressions neutralisées avant la recherche.
+# Certains mots sont limités à l'objet pour ne pas pénaliser une vraie
+# consultation logicielle dont la description dit, par exemple,
+# « sauvegarde et restauration des données » ou « assurance qualité ».
+exclusions:
+  points: -5
+  mots:
+    - mot: assurance
+      champs: [objet]
+      sauf: [assurance qualite]
+    - mot: voyage
+    - mot: sejour
+    - mot: scolaire
+    - mot: periscolaire
+    - mot: election
+    - mot: paie
+    - mot: ressources humaines
+    - mot: sirh
+    - mot: cantine
+    - mot: restauration
+      champs: [objet]
+    - mot: billetterie
+    - mot: bibliotheque
+      sauf: [bibliotheque de prix, bibliotheque de clauses]
+    - mot: mediatheque
+    # Maintenance d'un logiciel existant (Sage, etc.) : on regarde l'objet,
+    # car une vraie consultation décrit souvent « maintenance du logiciel »
+    # parmi les prestations attendues (cas OPPIC).
+    - mot: maintenance du logiciel
+      champs: [objet]
+    - mot: tierce maintenance applicative
+      champs: [objet]
+    - mot: sage
+      champs: [objet]
+    - mot: gestion financiere
+      champs: [objet]
+    - mot: dematerialisation des plis
+
+# Liste rappelée en bas de chaque e-mail.
+checklist:
+  - "L'objet correspond à ce que BulQ vend."
+  - "La date limite laisse au moins 10 jours."
+  - "Aucune certification bloquante exigée (BulQ n'en a pas, mais héberge ses données en Europe et respecte le RGPD)."
+  - "Le volume ou le montant est cohérent avec 10 000 à 100 000 € par an."
+  - "Paul valide avant tout dépôt."
+
+email:
+  # Message « rien aujourd'hui » : au plus un tous les N jours.
+  rien_tous_les_jours: 7

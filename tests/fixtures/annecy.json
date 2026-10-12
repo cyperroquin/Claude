@@ -1,0 +1,59 @@
+{
+ "idweb": "26-26177",
+ "id": "26_26177",
+ "contractfolderid": null,
+ "objet": "Mise à disposition et maintenance d'une solution logicielle en Saas pour la rédaction et la passation des contrats publics",
+ "filename": "26-26177",
+ "famille": "FNS",
+ "code_departement": [
+  "74"
+ ],
+ "code_departement_prestation": null,
+ "famille_libelle": "Marchés entre 90 k€ et seuils européens",
+ "dateparution": "2026-03-13",
+ "datefindiffusion": "2026-04-13",
+ "datelimitereponse": "2026-04-13T12:00:00+00:00",
+ "nomacheteur": "Ville d'Annecy",
+ "titulaire": null,
+ "perimetre": "FNSimple",
+ "type_procedure": "OUVERT",
+ "soustype_procedure": null,
+ "procedure_libelle": "Procédure Ouverte",
+ "procedure_categorise": "OUVERT/",
+ "nature": "APPEL_OFFRE",
+ "sousnature": null,
+ "nature_libelle": "Avis de marché",
+ "sousnature_libelle": null,
+ "nature_categorise": "appeloffre/standard",
+ "nature_categorise_libelle": "Avis de marché/",
+ "criteres": null,
+ "marche_public_simplifie": null,
+ "marche_public_simplifie_label": null,
+ "etat": "INITIAL",
+ "descripteur_code": [
+  "186"
+ ],
+ "dc": [
+  "186"
+ ],
+ "descripteur_libelle": [
+  "Logiciel"
+ ],
+ "type_marche": [
+  "FOURNITURES"
+ ],
+ "type_marche_facette": [
+  "Fournitures"
+ ],
+ "type_avis": [
+  "5",
+  "1",
+  ""
+ ],
+ "annonce_lie": null,
+ "annonces_anterieures": null,
+ "source_schema": "3.2.5",
+ "gestion": "{\"REFERENCE\": {\"IDWEB\": \"26-26177\", \"TYPE_AVIS\": {\"FAMILLE\": {\"FNS\": \"\"}, \"PERIMETRE\": {\"FNSimple\": \"\"}, \"NATURE\": {\"APPEL_OFFRE\": \"\"}, \"STATUT\": {\"INITIAL\": \"\"}}}, \"INDEXATION\": {\"SCHEMA\": \"3.2.5\", \"NOMORGANISME\": \"Ville d'Annecy\", \"TYPE_PROCEDURE\": {\"OUVERT\": \"\"}, \"DATE_PUBLICATION\": \"2026-03-13\", \"DATE_LIMITE_REPONSE\": \"2026-04-13T12:00:00\", \"DATE_FIN_DIFFUSION\": \"2026-04-13\", \"DESCRIPTEURS\": {\"DESCRIPTEUR\": {\"CODE\": \"186\", \"LIBELLE\": \"Logiciel\"}}, \"NATURE_MARCHE\": {\"FOURNITURES\": \"\"}, \"DEP_PUBLICATION\": \"74\", \"RESUME_OBJET\": \"Mise à disposition et maintenance d'une solution logicielle en Saas pour la rédaction et la passation des contrats publics\"}}",
+ "donnees": "{\"FNSimple\": {\"organisme\": {\"nomOfficiel\": \"Ville d'Annecy\", \"typeIdentificationNational\": {\"siret\": \"\"}, \"codeIdentificationNational\": \"20006340200016\", \"ville\": \"Annecy\", \"cp\": \"74011\", \"grpCommandes\": {\"non\": \"\"}}, \"initial\": {\"communication\": {\"urlDocConsul\": \"https://www.marches-publics.info/mpiaws/index.cfm?fuseaction=dematent.login&type=Dce&Idm=1790291\", \"identifiantInterne\": \"26AF-CP-0917-K\", \"docSecurite\": {\"oui\": \"\"}, \"urlSecurite\": {\"non\": \"\"}, \"nomContact\": \"Mme Josserand\", \"telContact\": \"+33 485467927\"}, \"procedure\": {\"procedureAdapteeO\": \"\", \"capaciteExercice\": \"Renvoi au règlement de la consultation\", \"capaciteEcoFin\": \"Renvoi au règlement de la consultation\", \"capaciteTech\": \"Renvoi au règlement de la consultation\", \"techAchat\": {\"autres\": \"\"}, \"dateReceptionOffres\": \"2026-04-13T12:00:00\", \"presOffres\": {\"interdite\": \"\"}, \"nbCandidatReduit\": {\"non\": \"\"}, \"attributionSansNegociation\": {\"oui\": \"\"}, \"variantes\": {\"non\": \"\"}, \"criteresAttrib\": \"La valeur technique et la qualité de la mise en oeuvre : 50%\\nLe coût global : 50%\"}, \"natureMarche\": {\"intitule\": \"Mise à disposition et maintenance d'une solution logicielle en SAAS pour la rédaction et la passation des contrats publics\", \"codeCPV\": {\"objetPrincipal\": {\"classPrincipale\": \"48490000\"}}, \"natureMarche\": {\"fournitures\": \"\"}, \"description\": \"Le présent marché concerne la mise à disposition, l'hébergement, le paramétrage et la maintenance d'une solution pour la rédaction et la passation des contrats publics (en mode SaaS, RDP interdit, éliminatoire).\\nLes principales prestations demandées sont : l'hébergement, le paramétrage, la mise en service, la formation des utilisateurs, la maintenance, l'aide fonctionnelle et une veille juridique.\\nIl est prévu également une PSE dont la réponse est facultative pour l'ajout d'un module d'exécution financière\", \"lieuExecution\": \"Annecy 74000 - Annecy\", \"dureeMois\": \"48\", \"tranches\": {\"non\": \"\"}, \"reservationMarche\": {\"non\": \"\"}, \"lotsMarche\": {\"non\": \"\"}}, \"informComplementaire\": {\"non\": \"\", \"autresInformComplementaire\": \"Pour tout renseignement d'ordre technique ou administratif, les candidats sont invités à poser leurs questions via la plate-forme d'achat de la Ville d'ANNECY, accessible depuis son site Internet : www.annecy.fr, rubrique marchés publics, cockpit « Correspondre avec l'acheteur » de la consultation considérée au plus tard 10 jours avant la date limite de remise des offres. Une réponse sera adressée sur la plate-forme à l'ensemble des candidats ayant téléchargé le dossier au plus tard 6 jours avant la date limite de remise des offres\"}}}}",
+ "url_avis": "https://www.boamp.fr/pages/avis/?q=idweb:26-26177"
+}

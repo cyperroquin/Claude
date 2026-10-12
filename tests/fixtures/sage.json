@@ -1,0 +1,60 @@
+{
+ "idweb": "26-70963",
+ "id": "26_70963",
+ "contractfolderid": null,
+ "objet": "Marché de Maintenance technique et évolutive relative au progiciel SAGE FRP TREASURY",
+ "filename": "26-70963",
+ "famille": "FNS",
+ "code_departement": [
+  "93"
+ ],
+ "code_departement_prestation": null,
+ "famille_libelle": "Marchés entre 90 k€ et seuils européens",
+ "dateparution": "2026-07-16",
+ "datefindiffusion": "2026-10-28",
+ "datelimitereponse": "2026-07-29T12:00:00+00:00",
+ "nomacheteur": "CAISSE CENTRALE MSA",
+ "titulaire": null,
+ "perimetre": "FNSimple",
+ "type_procedure": "OUVERT",
+ "soustype_procedure": null,
+ "procedure_libelle": "Procédure Ouverte",
+ "procedure_categorise": "OUVERT/",
+ "nature": "APPEL_OFFRE",
+ "sousnature": null,
+ "nature_libelle": "Avis de marché",
+ "sousnature_libelle": null,
+ "nature_categorise": "appeloffre/standard",
+ "nature_categorise_libelle": "Avis de marché/",
+ "criteres": [
+  "sociaux"
+ ],
+ "marche_public_simplifie": null,
+ "marche_public_simplifie_label": null,
+ "etat": "INITIAL",
+ "descripteur_code": [
+  "454"
+ ],
+ "dc": [
+  "454"
+ ],
+ "descripteur_libelle": [
+  "Informatique (maintenance serveurs et réseaux)"
+ ],
+ "type_marche": [
+  "SERVICES"
+ ],
+ "type_marche_facette": [
+  "Services"
+ ],
+ "type_avis": [
+  "5",
+  "1"
+ ],
+ "annonce_lie": null,
+ "annonces_anterieures": null,
+ "source_schema": "3.2.5",
+ "gestion": "{\"REFERENCE\": {\"IDWEB\": \"26-70963\", \"TYPE_AVIS\": {\"FAMILLE\": {\"FNS\": \"\"}, \"PERIMETRE\": {\"FNSimple\": \"\"}, \"NATURE\": {\"APPEL_OFFRE\": \"\"}, \"STATUT\": {\"INITIAL\": \"\"}}}, \"INDEXATION\": {\"SCHEMA\": \"3.2.5\", \"NOMORGANISME\": \"CAISSE CENTRALE MSA\", \"TYPE_PROCEDURE\": {\"OUVERT\": \"\"}, \"DATE_PUBLICATION\": \"2026-07-16\", \"DATE_LIMITE_REPONSE\": \"2026-07-29T12:00:00\", \"DATE_FIN_DIFFUSION\": \"2026-10-28\", \"DESCRIPTEURS\": {\"DESCRIPTEUR\": {\"CODE\": \"454\", \"LIBELLE\": \"Informatique (maintenance serveurs et réseaux)\"}}, \"NATURE_MARCHE\": {\"SERVICES\": \"\"}, \"CRITERES_SOCIAUX_ENV\": {\"SOCIAUX\": \"\"}, \"DEP_PUBLICATION\": \"93\", \"RESUME_OBJET\": \"Marché de Maintenance technique et évolutive relative au progiciel SAGE FRP TREASURY\"}}",
+ "donnees": "{\"FNSimple\": {\"organisme\": {\"nomOfficiel\": \"CAISSE CENTRALE MSA\", \"typeIdentificationNational\": {\"siret\": \"\"}, \"codeIdentificationNational\": \"30299044500033\", \"ville\": \"Bobigny cedex\", \"cp\": \"93013\", \"grpCommandes\": {\"non\": \"\"}}, \"initial\": {\"communication\": {\"urlProfilAch\": \"https://www.achatpublic.com/sdm/ent/gen/ent_detail.do?PCSLID=CSL_2026_q5y3tR8I-1\", \"identifiantInterne\": \"26027\", \"docSecurite\": {\"oui\": \"\"}, \"urlSecurite\": {\"non\": \"\"}, \"nomContact\": \"Service Marchés publics\", \"adresseMailContact\": \"marchespublicsdaji.blf@ccmsa.msa.fr\"}, \"procedure\": {\"procedureAdapteeO\": \"\", \"capaciteExercice\": \"Voir RC\", \"capaciteEcoFin\": \"Voir RC\", \"capaciteTech\": \"Voir RC\", \"techAchat\": {\"accordCadre\": \"\"}, \"dateReceptionOffres\": \"2026-07-29T12:00:00\", \"presOffres\": {\"interdite\": \"\"}, \"nbCandidatReduit\": {\"non\": \"\"}, \"attributionSansNegociation\": {\"oui\": \"\"}, \"variantes\": {\"non\": \"\"}, \"categorieAcheteur\": \"Caisse Centrale de la Mutualité Sociale Agricole\"}, \"natureMarche\": {\"intitule\": \"Marché de Maintenance technique et évolutive relative au progiciel SAGE FRP TREASURY\", \"codeCPV\": {\"objetPrincipal\": {\"classPrincipale\": \"72267000\"}}, \"natureMarche\": {\"services\": \"\"}, \"description\": \"Marché de Maintenance technique et évolutive relative au progiciel SAGE FRP TREASURY\", \"lieuExecution\": \"Seine-Saint-Denis\", \"dureeMois\": \"48\", \"tranches\": {\"non\": \"\"}, \"reservationMarche\": {\"non\": \"\"}, \"lotsMarche\": {\"non\": \"\"}}, \"informComplementaire\": {\"non\": \"\", \"autresInformComplementaire\": \"La présente consultation a pour objet une prestation de maintenance technique et évolutive relative au progiciel SAGE FRP TREASURY.\\nIl s'agit d'un marché mixte :\\n- L'exécution des prestations de maintenance technique (définies à l'article II du CCTP) relève d'un marché simple ;\\n- L'exécution des prestations de maintenance évolutive (définies à l'article III du CCTP) relève d'un accord-cadre mono-attributaire à bons de commande, conclu sans minimum mais avec un maximum de 20 jours de maintenance sur la durée totale du marché, conformément aux articles R.2162-2, R.2162-13 et R.2162-14 du Code de la commande publique.\\nNégociations\\nA l'issue de l'analyse initiale des offres des candidats, la CCMSA se réserve la possibilité :\\n- Soit d'attribuer le marché sur la base des offres initiales sans négociation,\\n- Soit d'engager des négociations avec l'ensemble des candidats par téléphone, par mail et/ou lors d'un entretien.\\nCritères de jugement des offres\\nConformément aux articles R.2152-6 à R.2152-8 et R.2152-11 du Code de la commande publique, les offres des candidats dont la capacité aura été jugée suffisante seront appréciées d'après les critères pondérés suivants :\\n- Prix (65 %) subdivisé comme suit :\\nla maintenance technique - 35%\\nla maintenance évolutive (l'analyse de ce sous-critère se fera sur la base du maximum de jours de prestations, soit 20 jours) - 30%.\\nValeur technique (30 %) subdivisé comme suit :\\nPlage de disponibilité (plus large que le minimum requis aux articles II.2 a et II.3 du CCTP) - 10%\\nDélai d'intervention (plus court que le maximum requis à l'article II.2 a et b CCTP) - 10%\\nNombre, qualifications professionnelles et organisation des moyens humains affectés à l'exécution du marché - 10%\\nDéveloppement durable (5 %) analysé au regard de la politique d'intégration, mise en oeuvre par le candidat pour l'exécution du présent marché, de salariés éloignés du marché du travail au sens de l'article 16.1.1.2 du CCAG-TIC, tels que :\\nPersonnes ayant obtenu la reconnaissance de travailleurs handicapés au sens de l'article L.5212-13 du Code du travail,\\nHabitants des quartiers prioritaires de la politique de la ville,\\nPersonnes fragiles (demandeurs d'emploi de plus de 50 ans, jeunes diplômés de moins de 26 ans justifiant d'une période d'inactivité de 6 mois depuis leur sortie du système scolaire ou de l'enseignement supérieur…)\\nIl est demandé aux candidats de fournir une description des profils concernés, ainsi que le volume horaire d'insertion prévu.\"}}}}",
+ "url_avis": "https://www.boamp.fr/pages/avis/?q=idweb:26-70963"
+}

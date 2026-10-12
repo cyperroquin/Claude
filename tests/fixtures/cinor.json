@@ -1,0 +1,64 @@
+{
+ "idweb": "26-18679",
+ "id": "26_18679",
+ "contractfolderid": null,
+ "objet": "MISE À DISPOSITION D’UNE SOLUTION DE GESTION DES MARCHÉS PUBLICS POUR LA CINOR",
+ "filename": "26-18679",
+ "famille": "FNS",
+ "code_departement": [
+  "974"
+ ],
+ "code_departement_prestation": null,
+ "famille_libelle": "Marchés entre 90 k€ et seuils européens",
+ "dateparution": "2026-02-23",
+ "datefindiffusion": "2026-03-20",
+ "datelimitereponse": "2026-03-20T12:00:00+00:00",
+ "nomacheteur": "COMMUNAUTE INTERCOMMUNALE NORD REUNION",
+ "titulaire": null,
+ "perimetre": "FNSimple",
+ "type_procedure": "OUVERT",
+ "soustype_procedure": null,
+ "procedure_libelle": "Procédure Ouverte",
+ "procedure_categorise": "OUVERT/",
+ "nature": "APPEL_OFFRE",
+ "sousnature": null,
+ "nature_libelle": "Avis de marché",
+ "sousnature_libelle": null,
+ "nature_categorise": "appeloffre/standard",
+ "nature_categorise_libelle": "Avis de marché/",
+ "criteres": [
+  "environnementaux"
+ ],
+ "marche_public_simplifie": null,
+ "marche_public_simplifie_label": null,
+ "etat": "INITIAL",
+ "descripteur_code": [
+  "186",
+  "274"
+ ],
+ "dc": [
+  "186",
+  "274"
+ ],
+ "descripteur_libelle": [
+  "Logiciel",
+  "Prestations de services"
+ ],
+ "type_marche": [
+  "SERVICES"
+ ],
+ "type_marche_facette": [
+  "Services"
+ ],
+ "type_avis": [
+  "5",
+  "1",
+  ""
+ ],
+ "annonce_lie": null,
+ "annonces_anterieures": null,
+ "source_schema": "3.2.5",
+ "gestion": "{\"REFERENCE\": {\"IDWEB\": \"26-18679\", \"TYPE_AVIS\": {\"FAMILLE\": {\"FNS\": \"\"}, \"PERIMETRE\": {\"FNSimple\": \"\"}, \"NATURE\": {\"APPEL_OFFRE\": \"\"}, \"STATUT\": {\"INITIAL\": \"\"}}}, \"INDEXATION\": {\"SCHEMA\": \"3.2.5\", \"NOMORGANISME\": \"COMMUNAUTE INTERCOMMUNALE NORD REUNION\", \"TYPE_PROCEDURE\": {\"OUVERT\": \"\"}, \"DATE_PUBLICATION\": \"2026-02-23\", \"DATE_LIMITE_REPONSE\": \"2026-03-20T12:00:00.000\", \"DATE_FIN_DIFFUSION\": \"2026-03-20\", \"DESCRIPTEURS\": {\"DESCRIPTEUR\": [{\"CODE\": \"186\", \"LIBELLE\": \"Logiciel\"}, {\"CODE\": \"274\", \"LIBELLE\": \"Prestations de services\"}]}, \"NATURE_MARCHE\": {\"SERVICES\": \"\"}, \"CRITERES_SOCIAUX_ENV\": {\"ENVIRONNEMENTAUX\": \"\"}, \"DEP_PUBLICATION\": \"974\", \"RESUME_OBJET\": \"MISE À DISPOSITION D’UNE SOLUTION DE GESTION DES MARCHÉS PUBLICS POUR LA CINOR\"}}",
+ "donnees": "{\"FNSimple\": {\"organisme\": {\"nomOfficiel\": \"CINOR\", \"typeIdentificationNational\": {\"siret\": \"\"}, \"codeIdentificationNational\": \"24974011900063\", \"ville\": \"SAINTE-CLOTILDE\", \"cp\": \"97490\", \"grpCommandes\": {\"non\": \"\"}}, \"initial\": {\"communication\": {\"urlProfilAch\": \"https://marches.cinor.fr\", \"identifiantInterne\": \"T5Y260018\", \"docSecurite\": {\"oui\": \"\"}, \"urlSecurite\": {\"non\": \"\"}, \"nomContact\": \"Direction de la Commande Publique\", \"adresseMailContact\": \"achat.marche@cinor.re\", \"telContact\": \"+33 262923427\"}, \"procedure\": {\"procedureAdapteeO\": \"\", \"capaciteExercice\": \"Les candidats peuvent remettre le formulaire « déclaration sur l’honneur – DR 01 » figurant dans le dossier de consultation ou remettre une déclaration sur l’honneur indiquant : \\n\\ta) Qu’ils n’entrent dans aucun des cas d’interdiction de soumissionner qu’il n’entre dans aucun des cas d’interdiction de soumissionner obligatoires prévus aux L. 2141-1 et suivants du Code de la commande publique ;\\n\\tb) Qu’ils sont en règle au regard des articles L. 5212-1 à L. 5212-11 du code du travail concernant l’emploi des travailleurs handicapés ; \\n\\tc) Qu’ils satisfont aux niveaux de capacités techniques, professionnelles et financières requis pour l’exécution du marché ;\\n\\nLes candidats peuvent également remettre, dès la candidature, toutes les pièces visées à l’article 8.3 du présent cahier des charges, à remettre par le candidat pressenti comme attributaire.\", \"techAchat\": {\"autres\": \"\"}, \"dateReceptionOffres\": \"2026-03-20T12:00:00.000\", \"presOffres\": {\"exigee\": \"\"}, \"nbCandidatReduit\": {\"non\": \"\"}, \"attributionSansNegociation\": {\"oui\": {\"@xsi:type\": \"xs:string\"}}, \"variantes\": {\"non\": {\"@xsi:type\": \"xs:string\"}}}, \"natureMarche\": {\"intitule\": \"MISE A DISPOSITION D’UNE SOLUTION DE GESTION DES MARCHÉS PUBLICS POUR LA CINOR\", \"codeCPV\": {\"objetPrincipal\": {\"classPrincipale\": \"72212490\"}}, \"natureMarche\": {\"services\": \"\"}, \"description\": \"La CINOR souhaite acquérir une solution logicielle de gestion des marchés publics, fournie sous forme de service en ligne (SaaS), afin d’accompagner et de sécuriser l’ensemble du cycle de vie des marchés publics.\\nLe projet vise à doter la collectivité d’un outil métier centralisé permettant :\\n•\\tde faciliter l’expression du besoin et la préparation des procédures,\\n•\\td’assurer la gestion dématérialisée des dossiers de consultation,\\n•\\tde structurer les circuits de validation et de suivi,\\n•\\tde sécuriser juridiquement les procédures,\\n•\\tde permettre le suivi de l’exécution des marchés,\\n•\\tet de disposer d’indicateurs de pilotage et d’analyse.\\nLa solution devra être accessible à l’ensemble des services concernés, favoriser le travail collaboratif et s’adapter à l’organisation existante de la CINOR.\\n\\nElle devra également garantir la conformité réglementaire, la continuité de service et la simplicité d’usage, tout en s’inscrivant dans une démarche globale de modernisation et d’optimisation de la commande publique.\\nCes services comprennent la mise en place ainsi que la formation des utilisateurs nécessaires au bon fonctionnement.\", \"lieuExecution\": \"Territoire de la CINOR\", \"dureeMois\": \"24\", \"valeurEstimee\": {\"@devise\": \"EUR\", \"valeur\": \"39000.0\"}, \"tranches\": {\"non\": {\"@xsi:type\": \"xs:string\"}}, \"reservationMarche\": {\"non\": \"\"}, \"lotsMarche\": {\"non\": {\"@xsi:type\": \"xs:string\"}}}, \"informComplementaire\": {\"non\": \"\", \"autresInformComplementaire\": \"Pour l'heure limite de remise des offres, il s'agit de l'heure locale (île de la Réunion). --Marché alloti : Non. -Durée du marché (en mois) : 24 mois. -Estimation prévisionnelle : 35 000 € HT (forfait sur 2 ans) / 2 000 € HT (maximum des bons de commande sur 1 an). -La consultation comporte des tranches : non. -La consultation prévoit une réservation de tout ou partie du marché : Non. -Présentation des offres par catalogue électronique : Interdite. -Réduction du nombre de candidats : Non. -Possibilité d'attribution sans négociation : Oui. -Les variantes sont autorisées ? : Non. -L'acheteur exige la présentation de variantes obligatoires ? : Non. -Critères d'attribution : Les critères d’attribution sont énoncés dans le dossier de consultation. -Y a-t-il des clauses sociales dans le présent marché ? Non.\"}}}}",
+ "url_avis": "https://www.boamp.fr/pages/avis/?q=idweb:26-18679"
+}

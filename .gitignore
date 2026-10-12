@@ -1,0 +1,7 @@
+.env
+veille.db
+apercu_email.html
+*.log
+__pycache__/
+.pytest_cache/
+.venv/

@@ -1,0 +1,63 @@
+{
+ "idweb": "26-69430",
+ "id": "26_69430",
+ "contractfolderid": null,
+ "objet": "Fourniture, mise en œuvre, exploitation et maintenance d’un logiciel de suivi administratif des marchés publics",
+ "filename": "26-69430",
+ "famille": "FNS",
+ "code_departement": [
+  "75"
+ ],
+ "code_departement_prestation": null,
+ "famille_libelle": "Marchés entre 90 k€ et seuils européens",
+ "dateparution": "2026-07-10",
+ "datefindiffusion": "2026-09-01",
+ "datelimitereponse": "2026-08-10T12:00:00+00:00",
+ "nomacheteur": "OPPIC",
+ "titulaire": null,
+ "perimetre": "FNSimple",
+ "type_procedure": "OUVERT",
+ "soustype_procedure": null,
+ "procedure_libelle": "Procédure Ouverte",
+ "procedure_categorise": "OUVERT/",
+ "nature": "APPEL_OFFRE",
+ "sousnature": null,
+ "nature_libelle": "Avis de marché",
+ "sousnature_libelle": null,
+ "nature_categorise": "appeloffre/standard",
+ "nature_categorise_libelle": "Avis de marché/",
+ "criteres": [
+  "environnementaux"
+ ],
+ "marche_public_simplifie": null,
+ "marche_public_simplifie_label": null,
+ "etat": "INITIAL",
+ "descripteur_code": [
+  "454",
+  "186"
+ ],
+ "dc": [
+  "454",
+  "186"
+ ],
+ "descripteur_libelle": [
+  "Informatique (maintenance serveurs et réseaux)",
+  "Logiciel"
+ ],
+ "type_marche": [
+  "SERVICES"
+ ],
+ "type_marche_facette": [
+  "Services"
+ ],
+ "type_avis": [
+  "5",
+  "1"
+ ],
+ "annonce_lie": null,
+ "annonces_anterieures": null,
+ "source_schema": "3.2.5",
+ "gestion": "{\"REFERENCE\": {\"IDWEB\": \"26-69430\", \"TYPE_AVIS\": {\"FAMILLE\": {\"FNS\": \"\"}, \"PERIMETRE\": {\"FNSimple\": \"\"}, \"NATURE\": {\"APPEL_OFFRE\": \"\"}, \"STATUT\": {\"INITIAL\": \"\"}}}, \"INDEXATION\": {\"SCHEMA\": \"3.2.5\", \"NOMORGANISME\": \"OPPIC\", \"TYPE_PROCEDURE\": {\"OUVERT\": \"\"}, \"DATE_PUBLICATION\": \"2026-07-10\", \"DATE_LIMITE_REPONSE\": \"2026-08-10T12:00:00.000\", \"DATE_FIN_DIFFUSION\": \"2026-09-01\", \"DESCRIPTEURS\": {\"DESCRIPTEUR\": [{\"CODE\": \"454\", \"LIBELLE\": \"Informatique (maintenance serveurs et réseaux)\"}, {\"CODE\": \"186\", \"LIBELLE\": \"Logiciel\"}]}, \"NATURE_MARCHE\": {\"SERVICES\": \"\"}, \"CRITERES_SOCIAUX_ENV\": {\"ENVIRONNEMENTAUX\": \"\"}, \"DEP_PUBLICATION\": \"75\", \"RESUME_OBJET\": \"Fourniture, mise en œuvre, exploitation et maintenance d’un logiciel de suivi administratif des marchés publics\"}}",
+ "donnees": "{\"FNSimple\": {\"organisme\": {\"nomOfficiel\": \"OPPIC\", \"typeIdentificationNational\": {\"siret\": \"\"}, \"codeIdentificationNational\": \"18009208200023\", \"ville\": \"Paris\", \"cp\": \"75013\", \"grpCommandes\": {\"non\": \"\"}}, \"initial\": {\"communication\": {\"urlProfilAch\": \"www.marches-publics.gouv.fr\", \"identifiantInterne\": \"DCE - Logiciel marché\", \"docSecurite\": {\"oui\": \"\"}, \"urlSecurite\": {\"non\": \"\"}, \"nomContact\": \"Departement des marchés\", \"adresseMailContact\": \"departement.marches@oppic.fr\"}, \"procedure\": {\"procedureAdapteeO\": \"\", \"capaciteExercice\": \"- Une lettre de candidature (Formulaire DC1 disponible à l’adresse suivante : http ://www.economie.gouv.fr/daj/formulaires-declaration-du-candidat ou équivalent) valant désignation du mandataire par ses co-traitants en cas de groupement ;\\n\\n- Une déclaration sur l’honneur attestant que le candidat n’entre pas dans l’un des cas d’exclusion prévus aux articles L. 2141-1 à L. 2141-5 et aux articles L. 2141-7 à L. 2141-10 du Code de la commande publique\\n\\n- En cas de sous-traitance, une déclaration de sous-traitance (Formulaire DC4 disponible à l’adresse suivante : http ://www.economie.gouv.fr/daj/formulaires-declaration-du-candidat ou équivalent – engagement écrit, précis et signé) ;\\n\\n- Les pouvoirs de la personne habilitée à engager le candidat ;\\n\\n- La copie du ou des jugements prononcés, si le candidat est en redressement judiciaire ;\\n\\nLa preuve de la capacité du candidat peut être apportée par tout moyen de preuve approprié, notamment par tout document équivalent d’un autre Etat membre de l’Union européenne.\\n\\nSi les documents fournis par le candidat ne sont pas établis en langue française, ils doivent être accompagnés d’une traduction en français. \\n\\nPar ailleurs, le candidat peut présenter sa candidature sous la forme d'un DUME (document unique de marché européen) électronique, établi conformément au modèle fixé par le règlement de la Commission européenne établissant le formulaire type (en lieu et place des documents mentionnés au présent article 3.2.1).\\n\\nLe DUME électronique peut être rempli sur le lien suivant : https://dume.chorus-pro.gouv.fr/.\\nLe DUME doit être rédigé en français.\", \"capaciteEcoFin\": \"Dans le cadre de réponse (annexe n°2 du RC) ou document équivalent, compléter les informations suivantes :\\n\\n- La déclaration concernant le chiffre d’affaires global du candidat et, le cas échéant, le chiffre d’affaires du domaine d’activité faisant l’objet du marché, réalisés au cours des trois derniers exercices disponibles ; étant précisé que les sociétés de création récente peuvent justifier de leur capacité économique et financière par tout moyen approprié ; \\n\\n- Une déclaration indiquant les effectifs moyens annuels du candidat et l’importance du personnel d’encadrement pendant les trois dernières années ;\", \"capaciteTech\": \"Dans le cadre de réponse (annexe n°2 du RC) ou document équivalent, compléter les informations suivantes :\\n- Entre 1 et 3 références similaires des principaux services fournis au cours des trois dernières années, précisant la nature des services fournis, leur montant, la date et le lieu d’exécution, ainsi que le destinataire public ou privé ; Dans le cas où le candidat présentait plus de 3 références, seules les 3 premières références seront examinées dans l’ordre de présentation.\", \"techAchat\": {\"autres\": \"\"}, \"dateReceptionOffres\": \"2026-08-10T12:00:00.000\", \"presOffres\": {\"exigee\": \"\"}, \"nbCandidatReduit\": {\"non\": \"\"}, \"attributionSansNegociation\": {\"oui\": {\"@xsi:type\": \"xs:string\"}}, \"variantes\": {\"non\": {\"@xsi:type\": \"xs:string\"}}, \"criteresAttrib\": \"Les critères d'attribution sont définis à l'article 4.1.2 du Règlement de la consultation : le prix est noté sur 40 points et la valeur technique est notée sur 60 points.\"}, \"natureMarche\": {\"intitule\": \"Fourniture, mise en œuvre, exploitation et maintenance d’un logiciel de suivi administratif des marchés publics\", \"codeCPV\": {\"objetPrincipal\": {\"classPrincipale\": \"48000000\"}}, \"natureMarche\": {\"services\": \"\"}, \"description\": \"La présente consultation a pour objet la passation d’un marché relatif à la fourniture, la mise en œuvre et la maintenance d’une solution logicielle de gestion et de suivi des marchés publics. \\n\\nLes prestations objet du marché sont décomposées comme suit :\\n\\n-\\tFourniture d’un logiciel de gestion et de suivi des marchés publics aux utilisateurs désignés, dans un environnement permettant d’assurer la sécurité des données,\\n-\\tInstallation et configuration/paramétrage du logiciel \\n-\\tTransfert des données entre le logiciel existant dit « MPOP » et le nouveau logiciel\\n-\\tAssistance des utilisateurs et maintenance du logiciel \\n-\\tFormation des utilisateurs\\n-\\tRéversibilité des prestations\\n\\nLe marché est à prix mixte. \\nLes prestations pour la part à bons de commande  sont conclues sans montant minimum et avec un montant maximum en euros HT de 50 000,00 € HT pour la période contractuelle.\", \"lieuExecution\": \"Paris 75013\", \"dureeMois\": \"75\", \"tranches\": {\"non\": {\"@xsi:type\": \"xs:string\"}}, \"reservationMarche\": {\"non\": \"\"}, \"lotsMarche\": {\"non\": {\"@xsi:type\": \"xs:string\"}}}, \"informComplementaire\": {\"non\": \"\", \"autresInformComplementaire\": \"Sur la base des justifications remises, la liste des candidats déclarés recevables sera établie en tenant compte des garanties techniques, professionnelles et financières présentées. Conformément à l’article R. 2144-3 du Code de la commande publique, l’acheteur se réserve la possibilité d’examiner les offres avant les candidatures. \\n\\nPour obtenir tous renseignements d’ordre administratif et technique qui leur seraient utiles lors de leur étude du D.C.E., les candidats devront faire parvenir, au plus tard 10 jours ouvrés avant la date limite de remise des offres, une demande écrite via le profil acheteur de l’OPPIC, la plateforme PLACE : https://www.marches-publics.gouv.fr. \\n\\nLe marché est ouvert à la négociation dont les modalités sont définies dans le règlement de la consultation. Les variantes sont interdites. \\nL’acheteur se réserve la possibilité de passer un marché de passer un marché négocié sans publicité ni mise en concurrence avec le titulaire pour l’achat de prestation similaires aux prestations décrites au présent marché, dans les conditions prévues à l’article R. 2122-7 du Code de la commande publique. Les plis devront être dématérialisés et remis dans les conditions indiquées à l'article 5 du RC sur la plateforme du profil acheteur https://www.marches-publics.gouv.fr Il est possible de remettre une copie de sauvegarde dans les conditions prévues à l'article 5 du RC. Voies et délais de recours : - Référé précontractuel : avant la conclusion du marché (articles L5511 à 12 et R5511 à 6 du code de justice administrative ; - Référé contractuel : à défaut de publication d'un avis d'intention de conclure, action à exercer dans un délai de 6 mois à compter du lendemain du jour de la conclusion du marché (articles L55113 à 23 et R5517 à 10 du code de justice administrative) ; - Recours pour excès de pouvoir : dans un délai de 2 mois à compter de la notification de la décision de rejet (articles R4211 et R4213 du code de justice administrative) ; - Recours de plein contentieux : dans un délai de 2 mois à compter de l'accomplissement des mesures de publicité concernant l'attribution du marché. La juridiction à saisir est le Tribunal administratif d’Orléans. A compter du 1er octobre 2026, l’adresse de l’Oppic est : 19, avenue du Maine – 75015 Paris\"}}}}",
+ "url_avis": "https://www.boamp.fr/pages/avis/?q=idweb:26-69430"
+}

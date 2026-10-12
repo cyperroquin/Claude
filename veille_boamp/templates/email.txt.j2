@@ -1,0 +1,34 @@
+{% macro bloc(lignes) %}
+{% for l in lignes %}
+{{ loop.index }}. {% if l.res.urgent %}[URGENT] {% endif %}[{{ l.res.decision }}] score {{ l.res.score }}
+   Acheteur     : {{ l.avis.acheteur }}
+   Objet        : {{ l.avis.objet }}
+   Date limite  : {{ l.avis.datelimite | jjmmaaaa }}{% if l.res.jours_restants is not none %} ({{ l.res.jours_restants }} jours restants){% endif %}
+
+   Type         : {{ l.libelle_nature }}
+   Raisons      : {{ l.res.raisons | join(" ; ") }}
+   Lien         : {{ l.avis.url }}
+
+{% endfor %}
+{% endmacro %}
+{{ sujet }}
+
+Consultations du BOAMP auxquelles BulQ peut candidater comme éditeur.
+Tri : urgents (date limite dans 3 à 6 jours) en tête, puis score décroissant.
+« À examiner » = score {{ seuils.a_examiner }} ou plus ; « À vérifier » = score {{ seuils.a_verifier }} à {{ seuils.a_examiner - 1 }}.
+
+{% if marches %}
+AVIS DE MARCHÉ ({{ marches | length }})
+{{ bloc(marches) }}
+{% endif %}
+{% if signaux %}
+SIGNAUX PRÉCOCES : AVIS INFORMATIFS ({{ signaux | length }})
+{{ bloc(signaux) }}
+{% endif %}
+CHECKLIST GO / NO-GO
+{% for c in checklist %}
+[ ] {{ c }}
+{% endfor %}
+
+--
+Veille automatique BOAMP (API open data DILA). Chaque avis n'est envoyé qu'une fois.

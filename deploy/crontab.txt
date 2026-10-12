@@ -1,0 +1,4 @@
+# Veille BOAMP : tous les jours à 7 h 30, heure de Paris.
+# À ajouter avec `crontab -e` en remplaçant le chemin du projet.
+CRON_TZ=Europe/Paris
+30 7 * * * /chemin/vers/veille-boamp/deploy/lancer.sh

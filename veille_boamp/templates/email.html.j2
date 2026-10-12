@@ -1,0 +1,66 @@
+{% macro tableau(lignes) %}
+<table role="presentation" cellpadding="6" cellspacing="0" border="0" style="border-collapse:collapse;width:100%;font-size:14px;">
+  <thead>
+    <tr style="background:#f1f3f5;text-align:left;">
+      <th style="border-bottom:2px solid #ccc;">Score</th>
+      <th style="border-bottom:2px solid #ccc;">Acheteur</th>
+      <th style="border-bottom:2px solid #ccc;">Objet</th>
+      <th style="border-bottom:2px solid #ccc;">Date limite</th>
+      <th style="border-bottom:2px solid #ccc;">Jours</th>
+      <th style="border-bottom:2px solid #ccc;">Raisons du score</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for l in lignes %}
+    <tr style="vertical-align:top;{% if l.res.urgent %}background:#fff4e5;{% endif %}">
+      <td style="border-bottom:1px solid #e5e5e5;white-space:nowrap;">
+        <strong>{{ l.res.score }}</strong><br>
+        <span style="font-size:12px;color:{{ '#0b6e4f' if l.res.decision == 'À examiner' else '#8a6d00' }};">{{ l.res.decision }}</span>
+        {% if l.res.urgent %}<br><span style="font-size:12px;color:#c0392b;font-weight:bold;">URGENT</span>{% endif %}
+      </td>
+      <td style="border-bottom:1px solid #e5e5e5;">{{ l.avis.acheteur }}</td>
+      <td style="border-bottom:1px solid #e5e5e5;">
+        <a href="{{ l.avis.url }}">{{ l.avis.objet }}</a><br>
+        <span style="font-size:12px;color:#666;">{{ l.libelle_nature }} · {{ l.avis.idweb }}</span>
+      </td>
+      <td style="border-bottom:1px solid #e5e5e5;white-space:nowrap;">{{ l.avis.datelimite | jjmmaaaa }}</td>
+      <td style="border-bottom:1px solid #e5e5e5;text-align:right;">{{ l.res.jours_restants if l.res.jours_restants is not none else "?" }}</td>
+      <td style="border-bottom:1px solid #e5e5e5;font-size:12px;color:#444;">
+        {% for r in l.res.raisons %}{{ r }}{% if not loop.last %}<br>{% endif %}{% endfor %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endmacro %}
+<!doctype html>
+<html lang="fr">
+<head><meta charset="utf-8"><title>{{ sujet }}</title></head>
+<body style="font-family:Arial,Helvetica,sans-serif;color:#222;max-width:1000px;">
+  <h2 style="margin-bottom:4px;">Veille BOAMP du {{ aujourdhui | jjmmaaaa }}</h2>
+  <p style="margin-top:0;color:#555;">
+    {{ n }} consultation{{ 's' if n > 1 }} à laquelle BulQ peut candidater comme éditeur.
+    Urgents (date limite dans 3 à 6 jours) en tête, puis score décroissant.
+    « À examiner » = score {{ seuils.a_examiner }} ou plus ; « À vérifier » = {{ seuils.a_verifier }} à {{ seuils.a_examiner - 1 }}.
+  </p>
+
+  {% if marches %}
+  <h3>Avis de marché ({{ marches | length }})</h3>
+  {{ tableau(marches) }}
+  {% endif %}
+
+  {% if signaux %}
+  <h3>Signaux précoces : avis informatifs ({{ signaux | length }})</h3>
+  {{ tableau(signaux) }}
+  {% endif %}
+
+  <h3>Checklist go / no-go</h3>
+  <ul>
+  {% for c in checklist %}
+    <li>{{ c }}</li>
+  {% endfor %}
+  </ul>
+
+  <p style="font-size:12px;color:#888;">Veille automatique BOAMP (API open data DILA). Chaque avis n'est envoyé qu'une fois.</p>
+</body>
+</html>

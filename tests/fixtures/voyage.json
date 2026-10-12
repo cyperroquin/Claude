@@ -1,0 +1,65 @@
+{
+ "idweb": "26-91088",
+ "id": "26_91088",
+ "contractfolderid": null,
+ "objet": "Voyage scolaire en Chine",
+ "filename": "26-91088",
+ "famille": "FNS",
+ "code_departement": [
+  "3",
+  "42",
+  "43",
+  "63",
+  "69",
+  "71"
+ ],
+ "code_departement_prestation": null,
+ "famille_libelle": "Marchés entre 90 k€ et seuils européens",
+ "dateparution": "2026-09-21",
+ "datefindiffusion": "2026-10-21",
+ "datelimitereponse": "2026-10-21T12:00:00+00:00",
+ "nomacheteur": "Lycée Jean Puy",
+ "titulaire": null,
+ "perimetre": "FNSimple",
+ "type_procedure": "OUVERT",
+ "soustype_procedure": null,
+ "procedure_libelle": "Procédure Ouverte",
+ "procedure_categorise": "OUVERT/",
+ "nature": "APPEL_OFFRE",
+ "sousnature": null,
+ "nature_libelle": "Avis de marché",
+ "sousnature_libelle": null,
+ "nature_categorise": "appeloffre/standard",
+ "nature_categorise_libelle": "Avis de marché/",
+ "criteres": [
+  "environnementaux"
+ ],
+ "marche_public_simplifie": null,
+ "marche_public_simplifie_label": null,
+ "etat": "INITIAL",
+ "descripteur_code": [
+  "367"
+ ],
+ "dc": [
+  "367"
+ ],
+ "descripteur_libelle": [
+  "Voyage"
+ ],
+ "type_marche": [
+  "SERVICES"
+ ],
+ "type_marche_facette": [
+  "Services"
+ ],
+ "type_avis": [
+  "5",
+  "1"
+ ],
+ "annonce_lie": null,
+ "annonces_anterieures": null,
+ "source_schema": "3.2.5",
+ "gestion": "{\"REFERENCE\": {\"IDWEB\": \"26-91088\", \"TYPE_AVIS\": {\"FAMILLE\": {\"FNS\": \"\"}, \"PERIMETRE\": {\"FNSimple\": \"\"}, \"NATURE\": {\"APPEL_OFFRE\": \"\"}, \"STATUT\": {\"INITIAL\": \"\"}}}, \"INDEXATION\": {\"SCHEMA\": \"3.2.5\", \"NOMORGANISME\": \"Lycée Jean Puy\", \"TYPE_PROCEDURE\": {\"OUVERT\": \"\"}, \"DATE_PUBLICATION\": \"2026-09-21\", \"DATE_LIMITE_REPONSE\": \"2026-10-21T12:00:00.000\", \"DATE_FIN_DIFFUSION\": \"2026-10-21\", \"DESCRIPTEURS\": {\"DESCRIPTEUR\": {\"CODE\": \"367\", \"LIBELLE\": \"Voyage\"}}, \"NATURE_MARCHE\": {\"SERVICES\": \"\"}, \"CRITERES_SOCIAUX_ENV\": {\"ENVIRONNEMENTAUX\": \"\"}, \"DEP_PUBLICATION\": [\"03\", \"42\", \"43\", \"63\", \"69\", \"71\"], \"RESUME_OBJET\": \"Voyage scolaire en Chine\"}}",
+ "donnees": "{\"FNSimple\": {\"organisme\": {\"nomOfficiel\": \"Lycée Jean Puy\", \"typeIdentificationNational\": {\"siret\": \"\"}, \"codeIdentificationNational\": \"19420031700015\", \"ville\": \"ROANNE\", \"cp\": \"42300\", \"grpCommandes\": {\"non\": \"\"}}, \"initial\": {\"communication\": {\"urlProfilAch\": \"https://mapa.aji-france.com/mapa/marche/169940/show\", \"identifiantInterne\": \"TMP/169940\", \"docSecurite\": {\"oui\": \"\"}, \"urlSecurite\": {\"non\": \"\"}, \"nomContact\": \"Karen PERRIN - Secrétaire Générale\", \"adresseMailContact\": \"intendant.0420031f@ac-lyon.fr\", \"telContact\": \"0477712460\"}, \"procedure\": {\"procedureAdapteeO\": \"\", \"capaciteEcoFin\": \"Le candidat décrira sa société (date de création, chiffre d'affaire, nombre de voyages scolaires organisés, destinations et budgets de ces voyages ...)\", \"capaciteTech\": \"Le candidat mentionnera ses moyens humains et mentionnera ses expériences dans des marchés similaires sur les 3 dernières années.\", \"techAchat\": {\"autres\": \"\"}, \"dateReceptionOffres\": \"2026-10-21T12:00:00.000\", \"presOffres\": {\"exigee\": \"\"}, \"nbCandidatReduit\": {\"non\": \"\"}, \"attributionSansNegociation\": {\"oui\": {\"@xsi:type\": \"xs:string\"}}, \"variantes\": {\"non\": {\"@xsi:type\": \"xs:string\"}}}, \"natureMarche\": {\"intitule\": \"Voyage scolaire en Chine\", \"codeCPV\": {\"objetPrincipal\": {\"classPrincipale\": \"63510000\"}}, \"natureMarche\": {\"services\": \"\"}, \"description\": \"Le marché a pour objet la réalisation d'un voyage scolaire en Chine du 1er au 9 avril 2027.\", \"lieuExecution\": \"Roanne 42300\", \"tranches\": {\"non\": {\"@xsi:type\": \"xs:string\"}}, \"reservationMarche\": {\"non\": \"\"}, \"lotsMarche\": {\"non\": {\"@xsi:type\": \"xs:string\"}}}, \"informComplementaire\": {\"non\": \"\"}}}}",
+ "url_avis": "https://www.boamp.fr/pages/avis/?q=idweb:26-91088"
+}
