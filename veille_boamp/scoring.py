@@ -111,8 +111,11 @@ class Moteur:
                     return choisis
         return None
 
-    def _cpv(self, codes: list[str], avis: Avis) -> list[str]:
-        return [c for c in avis.cpv if any(cpv_couvre(str(r), c) for r in codes)]
+    def _cpv(self, regle: dict, avis: Avis) -> list[str]:
+        codes = [str(c) for c in regle.get("codes", [])]
+        if regle.get("hierarchie", regle.get("type") == "cpv_et_mots"):
+            return [c for c in avis.cpv if any(cpv_couvre(r, c) for r in codes)]
+        return [c for c in avis.cpv if c in codes]
 
     def _neutraliser(self, texte: str) -> str:
         t = normaliser(texte)
@@ -140,7 +143,7 @@ class Moteur:
             typ, pts = r.get("type"), int(r.get("points", 0))
             detail = None
             if typ == "cpv":
-                trouves = self._cpv(r.get("codes", []), avis)
+                trouves = self._cpv(r, avis)
                 if trouves:
                     detail = "CPV " + ", ".join(trouves)
             elif typ == "mots":
@@ -153,7 +156,7 @@ class Moteur:
                 if choisis:
                     detail = " + ".join(f"« {t} »" for t in choisis)
             elif typ == "cpv_et_mots":
-                trouves = self._cpv(r.get("codes", []), avis)
+                trouves = self._cpv(r, avis)
                 mots = [t for g in r.get("groupes", []) for t in self._trouves(g, tout)]
                 if trouves and mots:
                     detail = f"CPV {trouves[0]} + « {mots[0]} »"

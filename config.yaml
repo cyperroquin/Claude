@@ -52,7 +52,10 @@ mots_cles:
     - bibliotheque de prix
     - base de prix
     - bordereau de prix
-    - achat
+    - gestion des achats
+    - fonction achat
+    - processus achat
+    - achats publics
     - e-sourcing
     - source to contract
     - gestion des fournisseurs
@@ -71,6 +74,20 @@ mots_cles:
 neutraliser:
   - code de la commande publique
   - en application
+  - par application
+  - fait application
+  - application aux quantites
+  - application des prix
+  - application de prix
+  - application des dispositions
+  - application des criteres
+  - via la plateforme
+  - plateforme achats publics
+  - plateforme place
+  - direction des achats publics
+  - passation des commandes
+  - passation de commandes
+  - passation et le suivi des commandes
   - application des articles
   - application de l'article
   - application du code
@@ -87,11 +104,12 @@ neutraliser:
   - plateforme de telechargement
 
 # Règles de score, évaluées dans l'ordre. Types disponibles :
-#   cpv           : un code CPV de la liste est présent (hiérarchie CPV respectée :
-#                   48000000 couvre tous les codes 48xxxxxx)
+#   cpv           : un code CPV de la liste est présent (code exact ; ajouter
+#                   `hierarchie: true` pour que 48000000 couvre tous les 48xxxxxx)
 #   mots          : au moins un mot d'un des groupes listés
 #   mots_croises  : au moins un mot de CHAQUE groupe listé
 #   cpv_et_mots   : un CPV de la liste ET au moins un mot d'un des groupes
+#                   (hiérarchie CPV appliquée par défaut)
 #   acheteur      : un des termes figure dans le nom de l'acheteur
 regles:
   - id: cpv_passation

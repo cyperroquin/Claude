@@ -65,7 +65,8 @@ d'exclusion et checklist. Le code n'a pas à changer.
 - La recherche ignore la casse, les accents et la ponctuation. Chaque mot
   accepte un « s » ou un « x » final.
 - Types de règles : `cpv`, `mots`, `mots_croises`, `cpv_et_mots`, `acheteur`.
-  La hiérarchie CPV est respectée : `48000000` couvre tous les codes `48xxxxxx`.
+  Une règle `cpv` compare le code exact. Avec `hierarchie: true` (valeur par
+  défaut pour `cpv_et_mots`), `48000000` couvre tous les codes `48xxxxxx`.
 - `neutraliser` : formules administratives effacées avant la recherche (par
   exemple « Code de la commande publique » ou « en application des
   articles »). Sans elles, presque tous les avis cumulent « application » et
@@ -91,9 +92,25 @@ d'exclusion et checklist. Le code n'a pas à changer.
   logiciels parlent souvent de « restauration des données » ou d'« assurance
   qualité ». « bibliothèque » n'exclut pas « bibliothèque de prix » ni
   « bibliothèque de clauses ».
+- **Groupe B, « achats »** : remplacé par « gestion des achats », « fonction
+  achat », « processus achat » et « achats publics ». Le mot seul est
+  presque toujours le verbe de l'objet (« Achat et mise en œuvre d'une
+  solution IAM en mode SaaS »).
+- **CPV moyens en code exact** : en hiérarchie, 72260000 couvrait toute la
+  maintenance logicielle (7226xxxx) et plaçait des dizaines d'avis de
+  maintenance (SAP, Viewpoint, téléphonie…) en « À vérifier ».
 - **Ajouts** : « progiciel » rejoint le groupe A. Les avis sans
   `datelimitereponse` (procédures restreintes) sont gardés : leur date limite
   est prise dans `donnees` (remise des offres ou des candidatures).
+
+### Résultat du rejeu de 90 jours (14/07 au 12/10/2026)
+
+18 755 avis analysés : 2 « À examiner », 14 « À vérifier ». Les deux avis
+« À examiner » sont de vrais candidats : Ville de Marseille, « système
+d'information dédié aux marchés publics » (26-77119, puis la relance
+26-83228), avec un score de 9. Avant ces réglages, le rejeu donnait 102 avis
+retenus, presque tous hors sujet. Les trois avis de référence, parus avant
+cette fenêtre, gardent leur score : Annecy 10, CINOR 9, OPPIC 7.
 
 ## Planification (7 h 30, heure de Paris)
 
