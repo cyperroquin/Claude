@@ -1,0 +1,95 @@
+# Veille BOAMP : passage quotidien vers 7 h 30, heure de Paris.
+name: Veille BOAMP
+
+on:
+  schedule:
+    - cron: "28 5 * * *"
+    - cron: "28 6 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "envoi = e-mail réel ; essai = affiche l'e-mail sans l'envoyer"
+        type: choice
+        options: [envoi, essai]
+        default: essai
+
+permissions:
+  contents: write
+
+concurrency:
+  group: veille-boamp
+  cancel-in-progress: false
+
+jobs:
+  veille:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Récupérer la mémoire de la veille
+        run: |
+          if git fetch --depth 1 origin veille-etat 2>/dev/null; then
+            git show FETCH_HEAD:veille.db > veille.db
+            git show FETCH_HEAD:dernier_passage.txt > dernier_passage.txt 2>/dev/null || true
+            echo "Mémoire récupérée."
+          else
+            echo "Pas encore de mémoire : premier passage."
+          fi
+
+      - name: Faut-il lancer la veille maintenant ?
+        id: garde
+        run: |
+          aujourdhui=$(TZ=Europe/Paris date +%F)
+          heure=$(TZ=Europe/Paris date +%-H)
+          echo "aujourdhui=$aujourdhui" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event_name }}" != "schedule" ]; then
+            echo "lancer=oui" >> "$GITHUB_OUTPUT"
+          elif [ "$heure" -lt 7 ]; then
+            echo "Il est $heure h à Paris : trop tôt."
+            echo "lancer=non" >> "$GITHUB_OUTPUT"
+          elif [ "$(cat dernier_passage.txt 2>/dev/null)" = "$aujourdhui" ]; then
+            echo "La veille du $aujourdhui est déjà faite."
+            echo "lancer=non" >> "$GITHUB_OUTPUT"
+          else
+            echo "lancer=oui" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-python@v5
+        if: steps.garde.outputs.lancer == 'oui'
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Installer les dépendances
+        if: steps.garde.outputs.lancer == 'oui'
+        run: pip install -r requirements.txt
+
+      - name: Lancer la veille
+        if: steps.garde.outputs.lancer == 'oui'
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          EMAIL_DESTINATAIRE: ${{ secrets.EMAIL_DESTINATAIRE }}
+          EMAIL_EXPEDITEUR: ${{ secrets.EMAIL_EXPEDITEUR }}
+        run: |
+          if [ "${{ inputs.mode }}" = "essai" ]; then
+            python -m veille_boamp --dry-run
+          else
+            python -m veille_boamp
+            echo "${{ steps.garde.outputs.aujourdhui }}" > dernier_passage.txt
+          fi
+
+      - name: Enregistrer la mémoire de la veille
+        if: steps.garde.outputs.lancer == 'oui'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          etat=$(mktemp -d)
+          cp veille.db "$etat/"
+          [ -f dernier_passage.txt ] && cp dernier_passage.txt "$etat/"
+          cd "$etat"
+          git init -q -b veille-etat
+          git add .
+          git -c user.name="Veille BOAMP" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -qm "Mémoire de la veille du ${{ steps.garde.outputs.aujourdhui }}"
+          git push -q -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" veille-etat
