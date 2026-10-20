@@ -25,6 +25,7 @@ cp .env.example .env    # puis renseigner le destinataire et l'envoi (SMTP ou Re
 | `python -m veille_boamp --dry-run` | Fait le passage quotidien et affiche l'e-mail sans l'envoyer (version HTML dans `apercu_email.html`). Les avis ne sont pas marqués comme envoyés. |
 | `python -m veille_boamp` | Passage quotidien avec envoi réel. |
 | `python -m veille_boamp --avis 26-26177 26-18679` | Note un ou plusieurs avis précis et détaille le score. |
+| `python -m veille_boamp --prospects` | Flux 2 : e-mail hebdomadaire des acheteurs de travaux actifs. Avec `--dry-run`, affiche l'e-mail sans l'envoyer ; avec `--forcer`, l'envoie même s'il est déjà parti cette semaine. |
 
 Options communes : `--config`, `--db`, `--env`, `--date AAAA-MM-JJ` (pour
 simuler un autre jour), `-v`.
@@ -112,13 +113,35 @@ d'information dédié aux marchés publics » (26-77119, puis la relance
 retenus, presque tous hors sujet. Les trois avis de référence, parus avant
 cette fenêtre, gardent leur score : Annecy 10, CINOR 9, OPPIC 7.
 
+## Flux 2 : acheteurs de travaux actifs
+
+Chaque lundi, le programme reprend les appels d'offres de travaux des 90
+derniers jours, les regroupe par acheteur et liste les 25 mieux placés :
+1 point par appel d'offres (15 au plus), 0,25 par lot (10 au plus), 2 si
+l'acheteur a publié dans les 7 derniers jours, 6 pour un bailleur social, 5
+pour un aménageur, une SEM ou une SPL, 2 pour une collectivité. Il faut au
+moins 2 appels d'offres pour figurer dans la liste. Pour chaque acheteur,
+l'e-mail donne l'e-mail public de l'avis (sans les plateformes ni les
+tribunaux), la fiche entreprise quand le SIRET est connu et les trois
+dernières consultations. Les acheteurs déjà signalés sont mémorisés dans
+`veille.db`. Tout se règle dans la section `prospects` de `config.yaml`.
+
 ## Planification (7 h 30, heure de Paris)
 
+- **GitHub Actions (recommandé)** : `.github/workflows/veille-boamp.yml` lance
+  la veille chaque matin, sans machine à laisser allumée. Ajouter dans le dépôt
+  GitHub (Settings → Secrets and variables → Actions) trois secrets :
+  `RESEND_API_KEY`, `EMAIL_DESTINATAIRE` et `EMAIL_EXPEDITEUR`. La mémoire
+  (`veille.db`) est conservée sur la branche `veille-etat`, à ne pas supprimer.
+  Un lancement manuel (onglet Actions → Veille BOAMP → Run workflow) propose
+  le mode « essai » (rien n'est envoyé) ou « envoi ».
+  `.github/workflows/prospects-acheteurs.yml` envoie l'e-mail du flux 2 le
+  lundi vers 7 h, avec les mêmes secrets et la même mémoire.
 - **Linux (cron)** : voir `deploy/crontab.txt`. La ligne `CRON_TZ=Europe/Paris`
   fixe le fuseau.
 - **macOS (launchd)** : voir `deploy/fr.bulq.veille-boamp.plist`.
 
-Les deux appellent `deploy/lancer.sh`, qui écrit la sortie dans `veille.log`.
+Cron et launchd appellent `deploy/lancer.sh`, qui écrit la sortie dans `veille.log`.
 
 ## Tests
 
