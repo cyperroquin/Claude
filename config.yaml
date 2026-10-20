@@ -204,3 +204,49 @@ checklist:
 email:
   # Message « rien aujourd'hui » : au plus un tous les N jours.
   rien_tous_les_jours: 7
+
+# ---------------------------------------------------------------------------
+# Flux 2 : prospects acheteurs (e-mail hebdomadaire)
+# Repère les maîtres d'ouvrage qui publient beaucoup d'appels d'offres de
+# travaux : ils comparent beaucoup d'offres et de devis, donc ont besoin de BulQ.
+# ---------------------------------------------------------------------------
+prospects:
+  jours: 90                 # période d'activité analysée
+  jours_recents: 7          # « actif cette semaine »
+  natures: [APPEL_OFFRE]
+  filtre_api: "type_marche = 'TRAVAUX'"
+  nb_affiches: 25           # acheteurs listés dans l'e-mail
+  min_avis: 2               # en dessous, l'acheteur n'est pas listé
+
+  points:
+    par_avis: 1             # chaque appel d'offres de travaux
+    max_avis: 15
+    par_lot: 0.25           # chaque lot = une comparaison d'offres de plus
+    max_lots: 10
+    actif_recemment: 2      # au moins un avis dans les 7 derniers jours
+
+  # Type d'acheteur, reconnu dans son nom. Le premier type trouvé s'applique.
+  types:
+    - nom: "Bailleur social"
+      points: 6
+      termes: [oph, office public de l'habitat, habitat, hlm, logement, bailleur, esh]
+    - nom: "Aménageur, SEM, SPL"
+      points: 5
+      termes: [sem, spl, societe d'amenagement, amenagement, grands projets,
+               oppic, etablissement public d'amenagement, epa, semop]
+    - nom: "Collectivité"
+      points: 2
+      termes: [ville, mairie, commune, metropole, communaute, agglomeration,
+               departement, departemental, region, regional, collectivite, syndicat]
+
+  # Acheteurs à ne jamais lister (nom contenant l'un de ces termes).
+  exclure: []
+
+  # Adresses à ne pas prendre pour un contact : plateformes de publication et
+  # tribunaux administratifs (cités comme instance de recours).
+  domaines_plateformes: [aws-france.com, achatpublic.com, marches-securises.fr,
+                         e-marchespublics.com, dematis.com, klekoon.com,
+                         marches-publics.info, megalis.bretagne.bzh,
+                         maximilien.fr, boamp.fr, francemarches.com,
+                         marches-publics.gouv.fr, synapse-entreprises.com,
+                         achats-hopitaux.com, centraledesmarches.com, juradm.fr]

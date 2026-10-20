@@ -1,0 +1,93 @@
+# Flux 2 : e-mail hebdomadaire des acheteurs de travaux actifs, le lundi vers 7 h (Paris).
+#
+# Deux créneaux UTC couvrent l'heure d'été et d'hiver ; le programme lui-même
+# n'envoie qu'un e-mail par semaine. Même mémoire (branche `veille-etat`) et
+# même file d'attente que la veille quotidienne, pour ne jamais l'écraser.
+
+name: Prospects acheteurs
+
+on:
+  schedule:
+    - cron: "8 5 * * 1"
+    - cron: "8 6 * * 1"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "envoi = e-mail réel ; essai = affiche l'e-mail sans l'envoyer"
+        type: choice
+        options: [envoi, essai]
+        default: essai
+
+permissions:
+  contents: write
+
+concurrency:
+  group: veille-boamp
+  cancel-in-progress: false
+
+jobs:
+  prospects:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Récupérer la mémoire de la veille
+        run: |
+          if git fetch --depth 1 origin veille-etat 2>/dev/null; then
+            git show FETCH_HEAD:veille.db > veille.db
+            git show FETCH_HEAD:dernier_passage.txt > dernier_passage.txt 2>/dev/null || true
+            echo "Mémoire récupérée."
+          else
+            echo "Pas encore de mémoire : premier passage."
+          fi
+
+      - name: Faut-il lancer maintenant ?
+        id: garde
+        run: |
+          heure=$(TZ=Europe/Paris date +%-H)
+          echo "aujourdhui=$(TZ=Europe/Paris date +%F)" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "$heure" -lt 7 ]; then
+            echo "Il est $heure h à Paris : trop tôt, le créneau suivant fera l'envoi."
+            echo "lancer=non" >> "$GITHUB_OUTPUT"
+          else
+            echo "lancer=oui" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-python@v5
+        if: steps.garde.outputs.lancer == 'oui'
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Installer les dépendances
+        if: steps.garde.outputs.lancer == 'oui'
+        run: pip install -r requirements.txt
+
+      - name: Préparer l'e-mail des prospects
+        if: steps.garde.outputs.lancer == 'oui'
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          EMAIL_DESTINATAIRE: ${{ secrets.EMAIL_DESTINATAIRE }}
+          EMAIL_EXPEDITEUR: ${{ secrets.EMAIL_EXPEDITEUR }}
+        run: |
+          case "${{ inputs.mode }}" in
+            essai) python -m veille_boamp --prospects --dry-run ;;
+            envoi) python -m veille_boamp --prospects --forcer ;;
+            *)     python -m veille_boamp --prospects ;;
+          esac
+
+      - name: Enregistrer la mémoire de la veille
+        if: steps.garde.outputs.lancer == 'oui'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          etat=$(mktemp -d)
+          cp veille.db "$etat/"
+          [ -f dernier_passage.txt ] && cp dernier_passage.txt "$etat/"
+          cd "$etat"
+          git init -q -b veille-etat
+          git add .
+          git -c user.name="Veille BOAMP" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -qm "Mémoire après les prospects du ${{ steps.garde.outputs.aujourdhui }}"
+          git push -q -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" veille-etat

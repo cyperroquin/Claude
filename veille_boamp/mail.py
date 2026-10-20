@@ -6,7 +6,7 @@ import os
 import smtplib
 import ssl
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 from email.message import EmailMessage
 from email.utils import formatdate, make_msgid
 from pathlib import Path
@@ -42,6 +42,7 @@ def _env() -> Environment:
         lstrip_blocks=True,
     )
     env.filters["jjmmaaaa"] = lambda d: d.strftime("%d/%m/%Y") if d else "non indiquée"
+    env.filters["jjmm"] = lambda d: (date.fromisoformat(d) if isinstance(d, str) else d).strftime("%d/%m") if d else ""
     return env
 
 
@@ -78,6 +79,20 @@ def construire_rien(aujourdhui: date, config: dict, nb_analyses: int) -> Courrie
     env = _env()
     return Courriel(sujet, env.get_template("rien.txt.j2").render(**ctx),
                     env.get_template("rien.html.j2").render(**ctx))
+
+
+def construire_prospects(acheteurs: list, aujourdhui: date, config: dict, nb_avis: int) -> Courriel:
+    p = config.get("prospects") or {}
+    lundi = aujourdhui - timedelta(days=aujourdhui.weekday())
+    n = len(acheteurs)
+    sujet = (f"[Prospects BOAMP] {n} acheteur{'s' if n > 1 else ''} de travaux actif{'s' if n > 1 else ''}, "
+             f"semaine du {lundi.strftime('%d/%m/%Y')}")
+    ctx = dict(sujet=sujet, aujourdhui=aujourdhui, acheteurs=acheteurs, nb_avis=nb_avis,
+               jours=p.get("jours", 90), jours_recents=p.get("jours_recents", 7),
+               nouveaux=sum(1 for a in acheteurs if not a.deja_signale))
+    env = _env()
+    return Courriel(sujet, env.get_template("prospects.txt.j2").render(**ctx),
+                    env.get_template("prospects.html.j2").render(**ctx))
 
 
 def envoyer(c: Courriel) -> None:

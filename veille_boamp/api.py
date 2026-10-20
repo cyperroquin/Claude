@@ -29,7 +29,8 @@ class ClientBoamp:
         self.session.headers.setdefault("User-Agent", "veille-boamp-bulq/1.0")
 
     def _get(self, params: dict) -> dict:
-        for essai in range(4):
+        essais = 7
+        for essai in range(essais):
             try:
                 r = self.session.get(self.url, params=params, timeout=self.delai)
                 if r.status_code == 429 or r.status_code >= 500:
@@ -38,9 +39,9 @@ class ClientBoamp:
                     raise RuntimeError(f"Erreur API BOAMP {r.status_code} : {r.text[:500]}")
                 return r.json()
             except (requests.ConnectionError, requests.Timeout, requests.HTTPError) as e:
-                if essai == 3:
+                if essai == essais - 1:
                     raise
-                attente = 2 ** (essai + 1)
+                attente = min(2 ** (essai + 1), 30)
                 log.warning("API BOAMP indisponible (%s), nouvel essai dans %s s", e, attente)
                 time.sleep(attente)
         raise AssertionError("inaccessible")
@@ -50,8 +51,9 @@ class ClientBoamp:
         res = self._get({"limit": 1, "order_by": "dateparution desc"})
         return res["results"][0] if res.get("results") else {}
 
-    def _filtre(self, debut: date, fin: date | None, ouverts: bool) -> str:
-        natures = ", ".join(f"'{n}'" for n in self.natures)
+    def _filtre(self, debut: date, fin: date | None, ouverts: bool,
+                natures: list[str] | None = None, extra: str | None = None) -> str:
+        natures = ", ".join(f"'{n}'" for n in (natures or self.natures))
         w = [f"dateparution >= date'{debut.isoformat()}'", f"nature in ({natures})"]
         if fin:
             w.append(f"dateparution <= date'{fin.isoformat()}'")
@@ -59,6 +61,8 @@ class ClientBoamp:
             # Les procédures restreintes n'ont souvent pas de `datelimitereponse` :
             # on les garde et la date est recherchée dans `donnees` ensuite.
             w.append("(datelimitereponse > now() OR datelimitereponse is null)")
+        if extra:
+            w.append(f"({extra})")
         return " AND ".join(w)
 
     def _pages(self, where: str) -> Iterator[dict]:
@@ -81,11 +85,12 @@ class ClientBoamp:
         debut = aujourdhui - timedelta(days=max(1, -(-heures // 24)))
         yield from self._pages(self._filtre(debut, None, ouverts=True))
 
-    def periode(self, debut: date, fin: date) -> Iterator[dict]:
+    def periode(self, debut: date, fin: date, natures: list[str] | None = None,
+                extra: str | None = None) -> Iterator[dict]:
         """Tous les avis retenus parus entre deux dates, jour par jour (rejeu)."""
         jour = debut
         while jour <= fin:
-            yield from self._pages(self._filtre(jour, jour, ouverts=False))
+            yield from self._pages(self._filtre(jour, jour, ouverts=False, natures=natures, extra=extra))
             jour += timedelta(days=1)
 
     def par_idweb(self, idweb: str) -> dict | None:

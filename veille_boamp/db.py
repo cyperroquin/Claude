@@ -29,6 +29,13 @@ CREATE TABLE IF NOT EXISTS avis (
     derniere_analyse TEXT,
     envoye_le TEXT
 );
+CREATE TABLE IF NOT EXISTS acheteurs_signales (
+    cle TEXT PRIMARY KEY,
+    nom TEXT,
+    premier_signalement TEXT,
+    dernier_signalement TEXT,
+    nb_signalements INTEGER
+);
 CREATE TABLE IF NOT EXISTS envois (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     envoye_le TEXT,
@@ -96,7 +103,39 @@ class Journal:
         self.cx.commit()
 
     def dernier_envoi_depuis(self, jours: int, aujourdhui: date) -> bool:
-        """Vrai si un e-mail (alerte ou « rien ») est parti dans les `jours` derniers jours."""
+        """Vrai si un e-mail de veille quotidienne (alerte ou « rien ») est parti dans les `jours` derniers jours."""
         limite = (aujourdhui - timedelta(days=jours - 1)).isoformat()
-        row = self.cx.execute("SELECT 1 FROM envois WHERE envoye_le >= ? LIMIT 1", (limite,)).fetchone()
+        row = self.cx.execute(
+            "SELECT 1 FROM envois WHERE envoye_le >= ? AND type IN ('alerte', 'rien') LIMIT 1", (limite,)
+        ).fetchone()
+        return row is not None
+
+    def premiers_signalements(self, cles: list[str]) -> dict[str, str]:
+        """Date du premier envoi de chaque acheteur déjà signalé (flux 2)."""
+        if not cles:
+            return {}
+        marques = ",".join("?" * len(cles))
+        rows = self.cx.execute(
+            f"SELECT cle, premier_signalement FROM acheteurs_signales WHERE cle IN ({marques})", cles
+        )
+        return {r["cle"]: r["premier_signalement"] for r in rows}
+
+    def noter_signalements(self, acheteurs: list[tuple[str, str]], aujourdhui: date) -> None:
+        jour = aujourdhui.isoformat()
+        self.cx.executemany(
+            """
+            INSERT INTO acheteurs_signales (cle, nom, premier_signalement, dernier_signalement, nb_signalements)
+            VALUES (?, ?, ?, ?, 1)
+            ON CONFLICT(cle) DO UPDATE SET nom=excluded.nom,
+                dernier_signalement=excluded.dernier_signalement,
+                nb_signalements=nb_signalements + 1
+            """,
+            [(cle, nom, jour, jour) for cle, nom in acheteurs],
+        )
+        self.cx.commit()
+
+    def envoi_de_type_depuis(self, type_: str, depuis: date) -> bool:
+        row = self.cx.execute(
+            "SELECT 1 FROM envois WHERE type = ? AND envoye_le >= ? LIMIT 1", (type_, depuis.isoformat())
+        ).fetchone()
         return row is not None

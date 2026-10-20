@@ -5,6 +5,7 @@
     python -m veille_boamp --backfill 90   rejoue 90 jours et compte les avis par critère
     python -m veille_boamp --avis 26-26177 note un ou plusieurs avis précis
     python -m veille_boamp --champs        affiche les champs réels de l'API
+    python -m veille_boamp --prospects     e-mail hebdomadaire des acheteurs de travaux actifs (flux 2)
 """
 
 from __future__ import annotations
@@ -23,7 +24,8 @@ import yaml
 from .api import ClientBoamp
 from .db import Journal
 from .extraction import CHAMPS_ATTENDUS, lire_avis
-from .mail import Ligne, construire, construire_rien, envoyer
+from .mail import Ligne, construire, construire_prospects, construire_rien, envoyer
+from .prospects import Prospection
 from .scoring import A_EXAMINER, A_VERIFIER, JOURNAL, Moteur
 
 RACINE = Path(__file__).resolve().parent.parent
@@ -178,12 +180,53 @@ def noter_avis(config: dict, client: ClientBoamp, moteur: Moteur, aujourdhui: da
     return code
 
 
+def prospects(config: dict, client: ClientBoamp, journal: Journal, aujourdhui: date,
+              dry_run: bool, forcer: bool) -> int:
+    p = config.get("prospects") or {}
+    lundi = aujourdhui - timedelta(days=aujourdhui.weekday())
+    if not forcer and not dry_run and journal.envoi_de_type_depuis("prospects", lundi):
+        log.info("L'e-mail des prospects de la semaine du %s est déjà parti.", lundi)
+        return 0
+    debut = aujourdhui - timedelta(days=int(p.get("jours", 90)))
+    recs = []
+    jour_courant = None
+    for rec in client.periode(debut, aujourdhui, natures=p.get("natures"), extra=p.get("filtre_api")):
+        if rec.get("dateparution") != jour_courant:
+            jour_courant = rec.get("dateparution")
+            print(f"  … {jour_courant} ({len(recs)} avis)", file=sys.stderr, flush=True)
+        recs.append(rec)
+    moteur = Prospection(config)
+    acheteurs = moteur.noter(moteur.agreger(recs, aujourdhui), aujourdhui)
+    acheteurs = acheteurs[: int(p.get("nb_affiches", 25))]
+    deja = journal.premiers_signalements([a.cle for a in acheteurs])
+    for a in acheteurs:
+        a.deja_signale = deja.get(a.cle, "")
+    log.info("%s avis de travaux, %s acheteurs listés", len(recs), len(acheteurs))
+    courriel = construire_prospects(acheteurs, aujourdhui, config, len(recs))
+    if dry_run:
+        apercu = RACINE / "apercu_prospects.html"
+        apercu.write_text(courriel.html, encoding="utf-8")
+        print(f"Objet : {courriel.sujet}\n")
+        print(courriel.texte)
+        print(f"(--dry-run : rien n'a été envoyé ; version HTML dans {apercu})")
+        return 0
+    envoyer(courriel)
+    journal.noter_signalements([(a.cle, a.nom) for a in acheteurs], aujourdhui)
+    journal.noter_envoi("prospects", len(acheteurs), courriel.sujet)
+    log.info("E-mail envoyé : %s", courriel.sujet)
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="veille_boamp", description="Veille BOAMP pour BulQ")
     p.add_argument("--dry-run", action="store_true", help="affiche l'e-mail sans l'envoyer")
     p.add_argument("--backfill", type=int, metavar="JOURS", help="rejoue les N derniers jours")
     p.add_argument("--avis", nargs="+", metavar="IDWEB", help="note un ou plusieurs avis précis")
     p.add_argument("--champs", action="store_true", help="affiche les champs réels de l'API")
+    p.add_argument("--prospects", action="store_true",
+                   help="e-mail hebdomadaire des acheteurs de travaux actifs (flux 2)")
+    p.add_argument("--forcer", action="store_true",
+                   help="avec --prospects : envoie même si l'e-mail de la semaine est déjà parti")
     p.add_argument("--config", default=str(RACINE / "config.yaml"))
     p.add_argument("--db", default=str(RACINE / "veille.db"))
     p.add_argument("--env", default=str(RACINE / ".env"))
@@ -215,6 +258,8 @@ def main(argv: list[str] | None = None) -> int:
         afficher_champs(client)
         print()
 
+    if args.prospects:
+        return prospects(config, client, journal, aujourdhui, args.dry_run, args.forcer)
     if args.backfill:
         return backfill(config, client, journal, moteur, aujourdhui, args.backfill)
     return passage_quotidien(config, client, journal, moteur, aujourdhui, args.dry_run)

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="fr">
+<head><meta charset="utf-8"><title>{{ sujet }}</title></head>
+<body style="font-family:Arial,Helvetica,sans-serif;color:#222;max-width:1000px;">
+  <h2 style="margin-bottom:4px;">Acheteurs de travaux actifs, semaine du {{ aujourdhui | jjmmaaaa }}</h2>
+  <p style="margin-top:0;color:#555;">
+    Les maîtres d'ouvrage qui ont publié le plus d'appels d'offres de travaux ces {{ jours }} derniers jours
+    ({{ nb_avis }} avis analysés). Chacun reçoit et compare beaucoup d'offres : ce sont des clients potentiels de BulQ.
+    {{ nouveaux }} acheteur{{ 's' if nouveaux > 1 }} apparai{{ 'ssent' if nouveaux > 1 else 't' }} pour la première fois.
+  </p>
+
+  <table role="presentation" cellpadding="6" cellspacing="0" border="0" style="border-collapse:collapse;width:100%;font-size:14px;">
+    <thead>
+      <tr style="background:#f1f3f5;text-align:left;">
+        <th style="border-bottom:2px solid #ccc;">#</th>
+        <th style="border-bottom:2px solid #ccc;">Acheteur</th>
+        <th style="border-bottom:2px solid #ccc;">Score</th>
+        <th style="border-bottom:2px solid #ccc;">Activité</th>
+        <th style="border-bottom:2px solid #ccc;">Contact</th>
+        <th style="border-bottom:2px solid #ccc;">Dernières consultations</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for a in acheteurs %}
+      <tr style="vertical-align:top;{% if not a.deja_signale %}background:#f3f9f4;{% endif %}">
+        <td style="border-bottom:1px solid #e5e5e5;">{{ loop.index }}</td>
+        <td style="border-bottom:1px solid #e5e5e5;">
+          <strong>{{ a.nom }}</strong><br>
+          <span style="font-size:12px;color:#666;">{{ a.type_acheteur or "Autre acheteur public" }}</span><br>
+          {% if a.deja_signale %}
+          <span style="font-size:12px;color:#888;">Déjà signalé le {{ a.deja_signale | jjmm }}</span>
+          {% else %}
+          <span style="font-size:12px;color:#0b6e4f;font-weight:bold;">Nouveau</span>
+          {% endif %}
+        </td>
+        <td style="border-bottom:1px solid #e5e5e5;" title="{{ a.raisons | join(' ; ') }}"><strong>{{ a.score }}</strong></td>
+        <td style="border-bottom:1px solid #e5e5e5;font-size:13px;">
+          {{ a.avis | length }} appels d'offres de travaux<br>
+          {{ a.nb_lots }} lot{{ 's' if a.nb_lots > 1 }}<br>
+          {% if a.nb_recents %}<span style="color:#0b6e4f;">{{ a.nb_recents }} cette semaine</span>{% else %}<span style="color:#888;">aucun cette semaine</span>{% endif %}
+        </td>
+        <td style="border-bottom:1px solid #e5e5e5;font-size:13px;">
+          {% if a.contact %}<a href="mailto:{{ a.contact }}">{{ a.contact }}</a><br>{% else %}<span style="color:#888;">pas d'e-mail public</span><br>{% endif %}
+          {% if a.lien_annuaire %}<a href="{{ a.lien_annuaire }}">Fiche entreprise</a>{% endif %}
+        </td>
+        <td style="border-bottom:1px solid #e5e5e5;font-size:13px;">
+          {% for x in a.derniers_avis %}
+          <a href="{{ x.url }}">{{ x.objet[:80] }}{{ '…' if x.objet | length > 80 }}</a>
+          <span style="color:#888;">({{ x.dateparution | jjmm }}{% if x.nb_lots > 1 %}, {{ x.nb_lots }} lots{% endif %})</span>{% if not loop.last %}<br>{% endif %}
+          {% endfor %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
+  <h3>Que faire de cette liste ?</h3>
+  <ol>
+    <li>Commencez par les acheteurs marqués « Nouveau » en haut de la liste.</li>
+    <li>Ouvrez une ou deux de leurs consultations : le nombre de lots et la nature des travaux disent combien d'offres ils vont devoir comparer.</li>
+    <li>Cherchez le bon interlocuteur (direction de la maîtrise d'ouvrage, du patrimoine ou des achats), par exemple sur LinkedIn. L'adresse indiquée est souvent celle du service des marchés.</li>
+    <li>Écrivez-lui en citant une consultation précise et ce que BulQ lui aurait fait gagner pour l'analyser.</li>
+  </ol>
+  <p style="font-size:12px;color:#888;">
+    Score : 1 point par appel d'offres de travaux, 0,25 par lot (une comparaison d'offres de plus), 2 si l'acheteur
+    a publié cette semaine, 6 pour un bailleur social, 5 pour un aménageur, une SEM ou une SPL, 2 pour une collectivité.
+    Prospection par e-mail : adressez-vous à une adresse professionnelle, au sujet de son métier, et proposez toujours
+    un moyen simple de ne plus être contacté.
+  </p>
+</body>
+</html>
