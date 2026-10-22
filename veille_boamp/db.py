@@ -51,29 +51,35 @@ class Journal:
         self.cx = sqlite3.connect(str(chemin))
         self.cx.row_factory = sqlite3.Row
         self.cx.executescript(SCHEMA)
+        # Colonnes ajoutées après coup : la base de GitHub existe déjà.
+        colonnes = {r["name"] for r in self.cx.execute("PRAGMA table_info(avis)")}
+        if "part_qualitatif" not in colonnes:
+            self.cx.execute("ALTER TABLE avis ADD COLUMN part_qualitatif REAL")
+            self.cx.commit()
 
-    def enregistrer(self, avis: Avis, res: Resultat) -> None:
+    def enregistrer(self, avis: Avis, res: Resultat, part_qualitatif: float | None = None) -> None:
         maintenant = datetime.now().isoformat(timespec="seconds")
         self.cx.execute(
             """
             INSERT INTO avis (idweb, objet, acheteur, nature, famille, dateparution, datelimite,
                               cpv, score, decision, statut_date, raisons, url,
-                              premiere_analyse, derniere_analyse)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                              premiere_analyse, derniere_analyse, part_qualitatif)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(idweb) DO UPDATE SET
                 objet=excluded.objet, acheteur=excluded.acheteur, nature=excluded.nature,
                 famille=excluded.famille, dateparution=excluded.dateparution,
                 datelimite=excluded.datelimite, cpv=excluded.cpv, score=excluded.score,
                 decision=excluded.decision, statut_date=excluded.statut_date,
                 raisons=excluded.raisons, url=excluded.url,
-                derniere_analyse=excluded.derniere_analyse
+                derniere_analyse=excluded.derniere_analyse,
+                part_qualitatif=excluded.part_qualitatif
             """,
             (
                 avis.idweb, avis.objet, avis.acheteur, avis.nature, avis.famille,
                 avis.dateparution.isoformat() if avis.dateparution else None,
                 avis.datelimite.isoformat() if avis.datelimite else None,
                 ",".join(avis.cpv), res.score, res.decision, res.statut_date,
-                json.dumps(res.raisons, ensure_ascii=False), avis.url, maintenant, maintenant,
+                json.dumps(res.raisons, ensure_ascii=False), avis.url, maintenant, maintenant, part_qualitatif,
             ),
         )
         self.cx.commit()

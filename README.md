@@ -126,6 +126,16 @@ tribunaux), la fiche entreprise quand le SIRET est connu et les trois
 dernières consultations. Les acheteurs déjà signalés sont mémorisés dans
 `veille.db`. Tout se règle dans la section `prospects` de `config.yaml`.
 
+Bonus « notation des offres », comptés une fois par acheteur dès qu'un de
+ses avis remplit la condition : +3 si les critères non-prix pèsent 50 % ou
+plus, +2 pour un accord-cadre avec remise en concurrence (marchés
+subséquents), +1 pour une procédure avec négociation, +2 si une date limite
+tombe dans 7 à 28 jours. À score égal, la date limite la plus proche passe
+devant. Les critères sont lus dans `veille_boamp/criteres.py` : liste
+pondérée des MAPA, critères eForms, ou texte libre du formulaire national ;
+quand ils renvoient au règlement de la consultation, la part reste vide (et
+la colonne `part_qualitatif` de `avis` reste nulle) sans erreur.
+
 ## Planification (7 h 30, heure de Paris)
 
 - **GitHub Actions (recommandé)** : `.github/workflows/veille-boamp.yml` lance
@@ -134,7 +144,8 @@ dernières consultations. Les acheteurs déjà signalés sont mémorisés dans
   `RESEND_API_KEY`, `EMAIL_DESTINATAIRE` et `EMAIL_EXPEDITEUR`. La mémoire
   (`veille.db`) est conservée sur la branche `veille-etat`, à ne pas supprimer.
   Un lancement manuel (onglet Actions → Veille BOAMP → Run workflow) propose
-  le mode « essai » (rien n'est envoyé) ou « envoi ».
+  le mode « essai » (rien n'est envoyé), « envoi » (e-mail de test, même si
+  les avis ont déjà été envoyés) ou « rejeu-30-jours » (comptes par critère).
   `.github/workflows/prospects-acheteurs.yml` envoie l'e-mail du flux 2 le
   lundi vers 7 h, avec les mêmes secrets et la même mémoire.
 - **Linux (cron)** : voir `deploy/crontab.txt`. La ligne `CRON_TZ=Europe/Paris`

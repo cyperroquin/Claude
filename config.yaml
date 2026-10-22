@@ -60,6 +60,11 @@ mots_cles:
     - source to contract
     - gestion des fournisseurs
     - suivi des marches
+    - rapport d'analyse des offres
+    - rapport de notation
+    - rapport d'analyse
+    - courriers de notification
+    - courriers de rejet
   C:  # signal fort, suffit seul
     - logiciel de gestion des marches
     - logiciel de redaction des marches
@@ -67,6 +72,9 @@ mots_cles:
     - outil d'aide a la redaction
     - logiciel d'analyse des offres
     - logiciel de chiffrage
+    - outil d'aide a l'analyse des offres
+    - outil de notation
+    - automatisation de l'analyse des offres
 
 # Formules juridiques ou administratives présentes dans presque tous les avis,
 # effacées du texte avant toute recherche (elles contiennent « commande
@@ -224,6 +232,24 @@ prospects:
     par_lot: 0.25           # chaque lot = une comparaison d'offres de plus
     max_lots: 10
     actif_recemment: 2      # au moins un avis dans les 7 derniers jours
+    # Correctif « notation des offres » : chaque bonus compte une fois par
+    # acheteur, dès qu'au moins un de ses avis remplit la condition.
+    qualitatif_min: 50      # part des critères non-prix, en %
+    qualitatif: 3
+    echeance_jours: [7, 28] # date limite de remise des offres dans cet intervalle
+    echeance: 2
+
+  # Procédures qui font noter plusieurs fois les offres. Détection dans l'objet,
+  # la description et le type de procédure ; `codes` = valeurs eForms.
+  procedures:
+    - libelle: "accord-cadre avec remise en concurrence"
+      points: 2
+      termes: [remise en concurrence, marches subsequents]
+      codes: [fa-w-rc, fa-mix]
+    - libelle: "procédure avec négociation"
+      points: 1
+      termes: [avec negociation, procedure negociee]
+      codes: [neg-w-call, neg-wo-call]
 
   # Type d'acheteur, reconnu dans son nom. Le premier type trouvé s'applique.
   types:

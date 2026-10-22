@@ -22,6 +22,7 @@ from zoneinfo import ZoneInfo
 import yaml
 
 from .api import ClientBoamp
+from .criteres import part_qualitatif
 from .db import Journal
 from .extraction import CHAMPS_ATTENDUS, lire_avis
 from .mail import Ligne, construire, construire_prospects, construire_rien, envoyer
@@ -66,7 +67,7 @@ def libelle_nature(config: dict, nature: str) -> str:
 
 
 def passage_quotidien(config: dict, client: ClientBoamp, journal: Journal, moteur: Moteur,
-                      aujourdhui: date, dry_run: bool) -> int:
+                      aujourdhui: date, dry_run: bool, forcer: bool = False) -> int:
     heures = int(config["api"].get("fenetre_heures", 48))
     natures = set(config["api"]["natures"])
     lignes: list[Ligne] = []
@@ -77,11 +78,12 @@ def passage_quotidien(config: dict, client: ClientBoamp, journal: Journal, moteu
             continue
         nb += 1
         res = moteur.evaluer(avis, aujourdhui)
-        journal.enregistrer(avis, res)
+        journal.enregistrer(avis, res, part_qualitatif(rec))
         if res.a_envoyer:
             lignes.append(Ligne(avis, res, libelle_nature(config, avis.nature)))
 
-    deja = journal.deja_envoyes([l.avis.idweb for l in lignes])
+    # --forcer (e-mail de test) : on renvoie aussi les avis déjà envoyés.
+    deja = set() if forcer else journal.deja_envoyes([l.avis.idweb for l in lignes])
     lignes = [l for l in lignes if l.avis.idweb not in deja]
     log.info("%s avis analysés, %s à envoyer (%s déjà envoyés écartés)", nb, len(lignes), len(deja))
 
@@ -90,7 +92,7 @@ def passage_quotidien(config: dict, client: ClientBoamp, journal: Journal, moteu
         type_envoi = "alerte"
     else:
         jours = int((config.get("email") or {}).get("rien_tous_les_jours", 7))
-        if journal.dernier_envoi_depuis(jours, aujourdhui):
+        if not forcer and journal.dernier_envoi_depuis(jours, aujourdhui):
             log.info("Rien à envoyer, et un e-mail est parti il y a moins de %s jours : pas d'envoi.", jours)
             return 0
         courriel = construire_rien(aujourdhui, config, nb)
@@ -130,7 +132,7 @@ def backfill(config: dict, client: ClientBoamp, journal: Journal, moteur: Moteur
             print(f"  … {jour_courant} ({total} avis analysés)", file=sys.stderr, flush=True)
         total += 1
         res = moteur.evaluer(avis, aujourdhui)
-        journal.enregistrer(avis, res)
+        journal.enregistrer(avis, res, part_qualitatif(rec))
         par_nature[avis.nature] += 1
         decisions[res.decision] += 1
         compte.update(set(res.criteres))
@@ -226,7 +228,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--prospects", action="store_true",
                    help="e-mail hebdomadaire des acheteurs de travaux actifs (flux 2)")
     p.add_argument("--forcer", action="store_true",
-                   help="avec --prospects : envoie même si l'e-mail de la semaine est déjà parti")
+                   help="envoie même si c'est déjà fait (avis déjà envoyés, e-mail de la semaine déjà parti)")
     p.add_argument("--config", default=str(RACINE / "config.yaml"))
     p.add_argument("--db", default=str(RACINE / "veille.db"))
     p.add_argument("--env", default=str(RACINE / ".env"))
@@ -262,7 +264,7 @@ def main(argv: list[str] | None = None) -> int:
         return prospects(config, client, journal, aujourdhui, args.dry_run, args.forcer)
     if args.backfill:
         return backfill(config, client, journal, moteur, aujourdhui, args.backfill)
-    return passage_quotidien(config, client, journal, moteur, aujourdhui, args.dry_run)
+    return passage_quotidien(config, client, journal, moteur, aujourdhui, args.dry_run, args.forcer)
 
 
 if __name__ == "__main__":

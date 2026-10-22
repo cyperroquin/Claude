@@ -9,13 +9,17 @@ placés.
 
 from __future__ import annotations
 
+import logging
 import re
 from collections import Counter
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 
+from .criteres import part_qualitatif
 from .extraction import charger_json, lire_avis, normaliser, parcourir
 from .scoring import motif
+
+log = logging.getLogger(__name__)
 
 _RE_MAIL = re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+")
 _RE_SIRET = re.compile(r"^\d{14}$")
@@ -28,6 +32,10 @@ class AvisTravaux:
     dateparution: date | None
     nb_lots: int
     url: str
+    datelimite: date | None = None
+    jours_restants: int | None = None
+    part_qualitatif: float | None = None
+    procedures: list[str] = field(default_factory=list)  # libellés B2 trouvés
 
 
 @dataclass
@@ -61,6 +69,12 @@ class Acheteur:
     @property
     def derniers_avis(self) -> list[AvisTravaux]:
         return sorted(self.avis, key=lambda a: a.dateparution or date.min, reverse=True)[:3]
+
+    @property
+    def prochaine_echeance(self) -> int | None:
+        """Jours restants avant la date limite la plus proche encore à venir."""
+        jours = [a.jours_restants for a in self.avis if a.jours_restants is not None and a.jours_restants >= 0]
+        return min(jours) if jours else None
 
 
 def _nb_lots(donnees: dict) -> int:
@@ -113,6 +127,22 @@ class Prospection:
         ]
         self.exclure = [motif(x) for x in self.p.get("exclure", [])]
         self.plateformes = [d.lower() for d in self.p.get("domaines_plateformes", [])]
+        self.procedures = [
+            (r["libelle"], float(r.get("points", 0)), [motif(x) for x in r.get("termes", [])],
+             [c.lower() for c in r.get("codes", [])])
+            for r in self.p.get("procedures", [])
+        ]
+
+    def _procedures(self, rec: dict, donnees: dict, avis) -> list[str]:
+        """Libellés des procédures « qui répètent les notations » reconnues dans l'avis."""
+        texte = normaliser(" ".join([avis.objet, avis.description, rec.get("procedure_libelle") or ""]))
+        codes = {
+            (v.get("#text", "") if isinstance(v, dict) else str(v)).lower()
+            for k, v in parcourir(donnees)
+            if k in ("cbc:ProcedureCode", "cbc:ContractingSystemTypeCode")
+        }
+        return [libelle for libelle, _, motifs, codes_regle in self.procedures
+                if any(m.search(texte) for m in motifs) or codes & set(codes_regle)]
 
     def agreger(self, enregistrements, aujourdhui: date) -> list[Acheteur]:
         acheteurs: dict[str, Acheteur] = {}
@@ -127,11 +157,22 @@ class Prospection:
                 continue
             a = acheteurs.setdefault(cle, Acheteur(cle=cle, nom=avis.acheteur))
             donnees = charger_json(rec.get("donnees"))
-            a.avis.append(AvisTravaux(avis.idweb, avis.objet, avis.dateparution,
-                                      _nb_lots(donnees), avis.url))
+            part = part_qualitatif(rec)
+            if part is None:
+                log.debug("%s : critères d'attribution absents ou illisibles", avis.idweb)
+            a.avis.append(AvisTravaux(
+                avis.idweb, avis.objet, avis.dateparution, _nb_lots(donnees), avis.url,
+                datelimite=avis.datelimite,
+                jours_restants=(avis.datelimite - aujourdhui).days if avis.datelimite else None,
+                part_qualitatif=part,
+                procedures=self._procedures(rec, donnees, avis),
+            ))
             a.siret = a.siret or _siret(donnees)
             a.emails.update(_emails(donnees, self.plateformes))
             a.departements.update(avis.departements)
+        lisibles = sum(1 for a in acheteurs.values() for x in a.avis if x.part_qualitatif is not None)
+        total = sum(len(a.avis) for a in acheteurs.values())
+        log.info("Critères d'attribution lisibles dans %s avis sur %s", lisibles, total)
         return list(acheteurs.values())
 
     def noter(self, acheteurs: list[Acheteur], aujourdhui: date) -> list[Acheteur]:
@@ -162,7 +203,29 @@ class Prospection:
                     total += points
                     a.raisons.append(f"+{points} : {libelle.lower()}")
                     break
+            # Ajouts du correctif « notation » : chaque point compte une fois par acheteur,
+            # dès qu'au moins un de ses avis remplit la condition.
+            parts = [x.part_qualitatif for x in a.avis if x.part_qualitatif is not None]
+            if parts and max(parts) >= float(pts.get("qualitatif_min", 50)):
+                p = float(pts.get("qualitatif", 3))
+                total += p
+                a.raisons.append(f"+{p:g} : qualitatif {max(parts):g} %")
+            for libelle, points, _, _ in self.procedures:
+                if any(libelle in x.procedures for x in a.avis):
+                    total += points
+                    a.raisons.append(f"+{points:g} : {libelle}")
+            mini, maxi = (pts.get("echeance_jours") or [7, 28])[:2]
+            echeances = [x.jours_restants for x in a.avis
+                         if x.jours_restants is not None and mini <= x.jours_restants <= maxi]
+            if echeances:
+                p = float(pts.get("echeance", 2))
+                total += p
+                a.raisons.append(f"+{p:g} : échéance dans {min(echeances)} jours")
             a.score = round(total)
             retenus.append(a)
-        retenus.sort(key=lambda a: (-a.score, -len(a.avis), a.nom))
+        retenus.sort(key=lambda a: (
+            -a.score,
+            a.prochaine_echeance if a.prochaine_echeance is not None else 10**6,
+            -len(a.avis), a.nom,
+        ))
         return retenus

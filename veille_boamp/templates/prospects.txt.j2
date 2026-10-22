@@ -12,7 +12,7 @@ Les maîtres d'ouvrage qui ont publié le plus d'appels d'offres de travaux ces 
 
    Raisons    : {{ a.raisons | join(" ; ") }}
 {% for x in a.derniers_avis %}
-   - {{ x.objet[:90] }} ({{ x.dateparution | jjmm }}) {{ x.url }}
+   - {{ x.objet[:90] }} (parue le {{ x.dateparution | jjmm }}{% if x.datelimite %}, date limite {{ x.datelimite | jjmm }}{% if x.jours_restants is not none and x.jours_restants >= 0 %} : {{ x.jours_restants }} j{% else %} : close{% endif %}{% endif %}) {{ x.url }}
 {% endfor %}
 
 {% endfor %}

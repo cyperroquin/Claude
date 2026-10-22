@@ -55,8 +55,10 @@ def test_agregation_et_score(avis, config):
     assert arac.nb_lots == 23
     assert arac.type_acheteur == "Aménageur, SEM, SPL"
     assert arac.nb_recents == 2
-    # 2 avis + 23 lots x 0,25 + 2 (actif cette semaine) + 5 (SPL) = 14,75
-    assert arac.score == 15
+    # 2 avis + 23 lots x 0,25 + 2 (actif cette semaine) + 5 (SPL)
+    # + 2 (date limite du 13/11, dans 24 jours) = 16,75
+    assert arac.score == 17
+    assert "+2 : échéance dans 24 jours" in arac.raisons
 
 
 def test_types_d_acheteur(config):

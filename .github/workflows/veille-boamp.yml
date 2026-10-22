@@ -8,9 +8,9 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "envoi = e-mail réel ; essai = affiche l'e-mail sans l'envoyer"
+        description: "envoi = e-mail réel ; essai = affiche l'e-mail sans l'envoyer ; rejeu = compte des 30 derniers jours, sans e-mail"
         type: choice
-        options: [envoi, essai]
+        options: [envoi, essai, rejeu-30-jours]
         default: essai
 
 permissions:
@@ -72,12 +72,13 @@ jobs:
           EMAIL_DESTINATAIRE: ${{ secrets.EMAIL_DESTINATAIRE }}
           EMAIL_EXPEDITEUR: ${{ secrets.EMAIL_EXPEDITEUR }}
         run: |
-          if [ "${{ inputs.mode }}" = "essai" ]; then
-            python -m veille_boamp --dry-run
-          else
-            python -m veille_boamp
-            echo "${{ steps.garde.outputs.aujourdhui }}" > dernier_passage.txt
-          fi
+          case "${{ inputs.mode }}" in
+            essai) python -m veille_boamp --dry-run ;;
+            envoi) python -m veille_boamp --forcer ;;
+            rejeu-30-jours) python -m veille_boamp --backfill 30 ;;
+            *)     python -m veille_boamp
+                   echo "${{ steps.garde.outputs.aujourdhui }}" > dernier_passage.txt ;;
+          esac
 
       - name: Enregistrer la mémoire de la veille
         if: steps.garde.outputs.lancer == 'oui'
