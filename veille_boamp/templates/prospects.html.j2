@@ -16,7 +16,9 @@
         <th style="border-bottom:2px solid #ccc;">Acheteur</th>
         <th style="border-bottom:2px solid #ccc;">Score</th>
         <th style="border-bottom:2px solid #ccc;">Activité</th>
-        <th style="border-bottom:2px solid #ccc;">Contact</th>
+        <th style="border-bottom:2px solid #ccc;">E-mail</th>
+        <th style="border-bottom:2px solid #ccc;">Téléphone</th>
+        <th style="border-bottom:2px solid #ccc;">Profil acheteur</th>
         <th style="border-bottom:2px solid #ccc;">Dernières consultations</th>
       </tr>
     </thead>
@@ -41,8 +43,14 @@
           {% if a.nb_recents %}<span style="color:#0b6e4f;">{{ a.nb_recents }} cette semaine</span>{% else %}<span style="color:#888;">aucun cette semaine</span>{% endif %}
         </td>
         <td style="border-bottom:1px solid #e5e5e5;font-size:13px;">
-          {% if a.contact %}<a href="mailto:{{ a.contact }}">{{ a.contact }}</a><br>{% else %}<span style="color:#888;">pas d'e-mail public</span><br>{% endif %}
-          {% if a.lien_annuaire %}<a href="{{ a.lien_annuaire }}">Fiche entreprise</a>{% endif %}
+          {% if a.contact %}<a href="mailto:{{ a.contact }}">{{ a.contact }}</a>{% else %}<span style="color:#888;">non indiqué</span>{% endif %}
+          {% if a.lien_annuaire %}<br><a href="{{ a.lien_annuaire }}" style="font-size:12px;">Fiche entreprise</a>{% endif %}
+        </td>
+        <td style="border-bottom:1px solid #e5e5e5;font-size:13px;white-space:nowrap;">
+          {% if a.telephone %}<a href="tel:{{ a.telephone | replace(' ', '') }}">{{ a.telephone }}</a>{% else %}<span style="color:#888;">non indiqué</span>{% endif %}
+        </td>
+        <td style="border-bottom:1px solid #e5e5e5;font-size:13px;">
+          {% if a.profil_acheteur %}<a href="{{ a.profil_acheteur }}">Ouvrir</a>{% else %}<span style="color:#888;">non indiqué</span>{% endif %}
         </td>
         <td style="border-bottom:1px solid #e5e5e5;font-size:13px;">
           {% for x in a.derniers_avis %}

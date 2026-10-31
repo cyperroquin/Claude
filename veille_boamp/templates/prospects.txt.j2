@@ -8,8 +8,11 @@ Les maîtres d'ouvrage qui ont publié le plus d'appels d'offres de travaux ces 
 
    Type       : {{ a.type_acheteur or "Autre acheteur public" }}
    Activité   : {{ a.avis | length }} appels d'offres de travaux, {{ a.nb_lots }} lots, {{ a.nb_recents }} cette semaine
-   Contact    : {{ a.contact or "pas d'e-mail public" }}{% if a.lien_annuaire %} · {{ a.lien_annuaire }}{% endif %}
-
+   E-mail     : {{ a.contact or "non indiqué" }}
+   Téléphone  : {{ a.telephone or "non indiqué" }}
+   Profil     : {{ a.profil_acheteur or "non indiqué" }}
+{% if a.lien_annuaire %}   Entreprise : {{ a.lien_annuaire }}
+{% endif %}
    Raisons    : {{ a.raisons | join(" ; ") }}
 {% for x in a.derniers_avis %}
    - {{ x.objet[:90] }} (parue le {{ x.dateparution | jjmm }}{% if x.datelimite %}, date limite {{ x.datelimite | jjmm }}{% if x.jours_restants is not none and x.jours_restants >= 0 %} : {{ x.jours_restants }} j{% else %} : close{% endif %}{% endif %}) {{ x.url }}

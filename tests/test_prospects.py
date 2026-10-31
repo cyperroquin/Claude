@@ -84,3 +84,29 @@ def test_courriel_et_suivi(tmp_path, avis, config):
     assert j.premiers_signalements([acheteurs[0].cle]) == {acheteurs[0].cle: "2026-10-20"}
     # L'e-mail des prospects ne compte pas pour le message « rien aujourd'hui » de la veille quotidienne.
     assert not j.dernier_envoi_depuis(7, AUJOURDHUI)
+
+
+def test_telephone_et_profil_acheteur(avis):
+    from veille_boamp.prospects import _profil_acheteur, _telephone, _telephones
+    # Formulaire national : `telContact`, numéro remis au format français.
+    d = charger_json(par_id(avis, "26-99586")["donnees"])
+    assert _telephones(d) == ["05 46 37 00 35"]
+    assert _profil_acheteur(d) == "https://www.marches-securises.fr"
+    # eForms : le numéro de l'acheteur, pas celui de la plateforme ni du tribunal.
+    d = charger_json(par_id(avis, "26-99504")["donnees"])
+    assert _telephones(d) == ["05 67 72 71 00"]
+    assert _profil_acheteur(d) == "http://marches-publics.info"
+    # Rien dans l'avis : champs vides, sans erreur.
+    assert _telephones({}) == [] and _profil_acheteur({}) == ""
+    assert _telephone("+33 442659054") == "04 42 65 90 54"
+
+
+def test_colonnes_contact_dans_le_courriel(avis, config):
+    p = Prospection(config)
+    acheteurs = p.noter(p.agreger(avis, AUJOURDHUI), AUJOURDHUI)
+    c = construire_prospects(acheteurs, AUJOURDHUI, config, len(avis))
+    for entete in ("E-mail", "Téléphone", "Profil acheteur"):
+        assert f">{entete}</th>" in c.html
+    assert 'href="tel:0499524524"' in c.html
+    assert 'href="http://marches-publics.info"' in c.html
+    assert "Téléphone  : 04 99 52 45 24" in c.texte

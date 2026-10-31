@@ -45,12 +45,15 @@ class Acheteur:
     avis: list[AvisTravaux] = field(default_factory=list)
     siret: str = ""
     emails: Counter = field(default_factory=Counter)
+    telephones: Counter = field(default_factory=Counter)
+    profil_acheteur: str = ""
     departements: Counter = field(default_factory=Counter)
     type_acheteur: str = ""
     score: int = 0
     raisons: list[str] = field(default_factory=list)
     nb_recents: int = 0
     deja_signale: str = ""  # date du premier signalement, vide si nouveau
+    _date_profil: date = date.min
 
     @property
     def nb_lots(self) -> int:
@@ -59,6 +62,10 @@ class Acheteur:
     @property
     def contact(self) -> str:
         return self.emails.most_common(1)[0][0] if self.emails else ""
+
+    @property
+    def telephone(self) -> str:
+        return self.telephones.most_common(1)[0][0] if self.telephones else ""
 
     @property
     def lien_annuaire(self) -> str:
@@ -117,6 +124,61 @@ def _emails(donnees: dict, plateformes: list[str]) -> list[str]:
     return out
 
 
+def _texte(v) -> str:
+    return str(v.get("#text", "") if isinstance(v, dict) else v or "").strip()
+
+
+def _telephone(brut: str) -> str:
+    """Numéro lisible : « +33 0546370035 » → « 05 46 37 00 35 » ; sinon tel quel."""
+    chiffres = re.sub(r"\D", "", brut or "")
+    if chiffres.startswith("33") and len(chiffres) >= 11:
+        chiffres = "0" + chiffres[2:].lstrip("0")
+    if len(chiffres) == 10 and chiffres.startswith("0"):
+        return " ".join(chiffres[i:i + 2] for i in range(0, 10, 2))
+    return (brut or "").strip()
+
+
+def _ids_acheteur_eforms(donnees) -> set[str]:
+    """Identifiants (ORG-xxxx) de l'acheteur dans un avis eForms."""
+    ids = set()
+    for k, v in parcourir(donnees):
+        if k == "cac:ContractingParty":
+            for cp in v if isinstance(v, list) else [v]:
+                parti = (cp or {}).get("cac:Party") if isinstance(cp, dict) else None
+                ident = (parti or {}).get("cac:PartyIdentification") if isinstance(parti, dict) else None
+                for i in ident if isinstance(ident, list) else [ident]:
+                    if isinstance(i, dict) and i.get("cbc:ID"):
+                        ids.add(_texte(i["cbc:ID"]))
+    return ids
+
+
+def _telephones(donnees) -> list[str]:
+    """Téléphone de l'acheteur : `telContact` (formulaires nationaux), ou le contact
+    de l'organisation acheteuse en eForms (pas la plateforme ni le tribunal)."""
+    out = [_telephone(_texte(v)) for k, v in parcourir(donnees) if k == "telContact" and _texte(v)]
+    if out:
+        return out
+    ids = _ids_acheteur_eforms(donnees)
+    for k, v in parcourir(donnees):
+        if k == "efac:Company" and isinstance(v, dict):
+            ident = v.get("cac:PartyIdentification")
+            ident = ident[0] if isinstance(ident, list) and ident else ident
+            if isinstance(ident, dict) and _texte(ident.get("cbc:ID")) in ids:
+                contact = v.get("cac:Contact") or {}
+                if isinstance(contact, dict) and _texte(contact.get("cbc:Telephone")):
+                    out.append(_telephone(_texte(contact["cbc:Telephone"])))
+    return out
+
+
+def _profil_acheteur(donnees) -> str:
+    """Lien vers le profil acheteur (où se trouve le dossier de consultation)."""
+    for k, v in parcourir(donnees):
+        if k in ("urlProfilAch", "urlProfilAcheteur", "cbc:BuyerProfileURI") and _texte(v):
+            url = _texte(v)
+            return url if re.match(r"https?://", url, re.I) else "https://" + url
+    return ""
+
+
 class Prospection:
     def __init__(self, config: dict):
         self.config = config
@@ -169,6 +231,11 @@ class Prospection:
             ))
             a.siret = a.siret or _siret(donnees)
             a.emails.update(_emails(donnees, self.plateformes))
+            a.telephones.update(_telephones(donnees))
+            # Profil acheteur de l'avis le plus récent qui en donne un.
+            profil = _profil_acheteur(donnees)
+            if profil and (not a.profil_acheteur or (avis.dateparution or date.min) >= a._date_profil):
+                a.profil_acheteur, a._date_profil = profil, avis.dateparution or date.min
             a.departements.update(avis.departements)
         lisibles = sum(1 for a in acheteurs.values() for x in a.avis if x.part_qualitatif is not None)
         total = sum(len(a.avis) for a in acheteurs.values())

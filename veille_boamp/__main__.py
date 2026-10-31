@@ -204,6 +204,9 @@ def prospects(config: dict, client: ClientBoamp, journal: Journal, aujourdhui: d
     for a in acheteurs:
         a.deja_signale = deja.get(a.cle, "")
     log.info("%s avis de travaux, %s acheteurs listés", len(recs), len(acheteurs))
+    log.info("Contacts trouvés : e-mail %s, téléphone %s, profil acheteur %s (sur %s acheteurs)",
+             sum(1 for a in acheteurs if a.contact), sum(1 for a in acheteurs if a.telephone),
+             sum(1 for a in acheteurs if a.profil_acheteur), len(acheteurs))
     courriel = construire_prospects(acheteurs, aujourdhui, config, len(recs))
     if dry_run:
         apercu = RACINE / "apercu_prospects.html"
