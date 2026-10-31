@@ -23,6 +23,7 @@ log = logging.getLogger(__name__)
 
 _RE_MAIL = re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+")
 _RE_SIRET = re.compile(r"^\d{14}$")
+_RE_SANS_REPONSE = re.compile(r"^(ne[-_.]?pas[-_.]?repondre|no[-_.]?reply|do[-_.]?not[-_.]?reply)\b")
 
 
 @dataclass
@@ -119,8 +120,11 @@ def _emails(donnees: dict, plateformes: list[str]) -> list[str]:
         if k.lower().split(":")[-1] in ("adressemailcontact", "electronicmail") and isinstance(v, str):
             for m in _RE_MAIL.findall(v):
                 m = m.lower()
-                if not any(m.endswith("@" + d) or m.endswith("." + d) for d in plateformes):
-                    out.append(m)
+                if any(m.endswith("@" + d) or m.endswith("." + d) for d in plateformes):
+                    continue
+                if _RE_SANS_REPONSE.match(m):  # nepasrepondre@…, noreply@… : inutilisables
+                    continue
+                out.append(m)
     return out
 
 

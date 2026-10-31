@@ -110,3 +110,9 @@ def test_colonnes_contact_dans_le_courriel(avis, config):
     assert 'href="tel:0499524524"' in c.html
     assert 'href="http://marches-publics.info"' in c.html
     assert "Téléphone  : 04 99 52 45 24" in c.texte
+
+
+def test_adresses_sans_reponse_ecartees():
+    d = {"adresseMailContact": "nepasrepondre@grandest.fr", "cac:Contact": {"cbc:ElectronicMail": "marches@grandest.fr"}}
+    assert _emails(d, []) == ["marches@grandest.fr"]
+    assert _emails({"adresseMailContact": "no-reply@ville.fr"}, []) == []
