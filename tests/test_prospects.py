@@ -153,3 +153,22 @@ def test_telephone_le_plus_utile_dans_le_courriel(avis, config):
     c = construire_prospects([arac], AUJOURDHUI, config, len(avis))
     assert "Ligne du service" in c.html and "Numéro de standard" in c.html  # colonne et légende
     assert "Téléphone  : 04 99 52 45 24 — ligne du service : Service Marchés" in c.texte
+
+
+def test_nature_du_telephone_cas_reels():
+    """Cas relevés sur l'essai du 02/11/2026 (données réelles)."""
+    from veille_boamp.prospects import nature_telephone
+    # Deux paires identiques à la fin : standard, même avec un nom.
+    assert nature_telephone("03 22 71 80 80", {("Pauline Lefevre", "")})[0] == "standard"
+    assert nature_telephone("02 98 76 20 20", {("Département du Finistère", "")})[0] == "standard"
+    # Seul le nom de l'organisme : standard.
+    assert nature_telephone("03 87 61 66 10", {("Région Grand Est", "")}, "Région Grand Est")[0] == "standard"
+    # Une adresse e-mail à la place du nom : ligne du service.
+    assert nature_telephone("02 35 19 44 46", {("secretariatcao@lehavremetro.fr", "")}) == \
+        ("service", "secretariatcao@lehavremetro.fr")
+    # Portable : contact direct.
+    assert nature_telephone("06 77 32 26 65", {("Alexandre Dechavanne", "")}) == ("contact", "Alexandre Dechavanne")
+    assert nature_telephone("06 92 11 35 53", set()) == ("contact", "portable")
+    # Plusieurs services : celui des marchés d'abord.
+    assert nature_telephone("04 99 52 45 24", {("EST SITE", ""), ("Service Marchés", "")}) == \
+        ("service", "Service Marchés")

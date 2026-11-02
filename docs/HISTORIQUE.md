@@ -109,10 +109,13 @@ publics. Deux usages :
 - Demande de Cyrille : le but est de prospecter ; un numéro de standard ne
   mène pas au responsable des achats de travaux. La colonne Téléphone précise
   donc la nature du numéro, estimée à partir de l'avis :
-  « Contact direct » (numéro donné avec le nom d'une personne, avec sa
-  fonction), « Ligne du service » (service des marchés, direction…) ou
-  « Numéro de standard » (pas de contact nommé, accueil, mairie, élu, numéro
-  partagé par plusieurs personnes ou terminé par 00). Quand un acheteur a
+  « Contact direct » (portable, ou numéro donné avec le nom d'une personne,
+  avec sa fonction), « Ligne du service » (service des marchés, direction,
+  adresse e-mail de service) ou « Numéro de standard » (forme typique d'un
+  accueil : terminé par 00 ou par deux paires identiques comme 20 20 ; pas de
+  contact nommé ; accueil, mairie ou seul nom de l'organisme ; élu ; numéro
+  partagé par plusieurs personnes). Règles ajustées après un essai sur les
+  données réelles du 02/11. Quand un acheteur a
   plusieurs numéros, le contact direct passe avant le service, puis le
   standard. Les numéros des avis MAPA (`coord.tel`) sont maintenant lus aussi.
   Sélection et scores inchangés.

@@ -75,7 +75,7 @@ class Acheteur:
         ordre = {"contact": 0, "service": 1, "standard": 2}
         choix = []
         for num, nb in self.telephones.items():
-            nature, libelle = nature_telephone(num, self.contacts_tel.get(num, set()))
+            nature, libelle = nature_telephone(num, self.contacts_tel.get(num, set()), self.nom)
             choix.append((ordre[nature], -nb, num, nature, libelle))
         _, _, num, nature, libelle = min(choix)
         return num, nature, libelle
@@ -279,28 +279,49 @@ def _libelle(nom: str, fonction: str) -> str:
     return f"{nom} ({fonction})" if nom and fonction else nom or fonction
 
 
-def nature_telephone(numero: str, contacts) -> tuple[str, str]:
+_RE_MOBILE = re.compile(r"^0(6|7)\d{8}$")
+_RE_ACHATS = re.compile(r"\b(marche|marches|achat|achats|commande publique|consultation|consultations|contrats)\b")
+
+
+def _numero_d_accueil(chiffres: str) -> bool:
+    """Forme typique d'un standard : se termine par 00, ou par deux paires identiques
+    (… 20 20, … 48 48, … 80 80)."""
+    return chiffres.endswith("00") or (len(chiffres) == 10 and chiffres[6:8] == chiffres[8:10])
+
+
+def nature_telephone(numero: str, contacts, nom_acheteur: str = "") -> tuple[str, str]:
     """Classe un numéro pour la prospection : (« contact » | « service » | « standard », libellé).
 
-    - « contact » : l'avis donne ce numéro avec le nom d'une personne ;
-    - « service » : avec le nom d'un service (service des marchés, direction…) ;
-    - « standard » : sans contact nommé, avec « accueil » ou « mairie », au nom d'un
-      élu (maire, président), partagé par plusieurs personnes différentes, ou
-      terminé par 00 (numéro d'accueil typique).
+    - « contact » : numéro de portable, ou numéro donné avec le nom d'une personne ;
+    - « service » : avec le nom d'un service (service des marchés, direction…) ou
+      une adresse e-mail de service ;
+    - « standard » : forme typique d'un numéro d'accueil (… 00, … 20 20), sans
+      contact nommé, avec « accueil », « mairie » ou le seul nom de l'organisme,
+      au nom d'un élu (maire, président), ou partagé par plusieurs personnes.
     C'est une estimation à partir de l'avis : le BOAMP ne dit pas si c'est un standard.
     """
     chiffres = re.sub(r"\D", "", numero)
     contacts = [(n, f) for n, f in contacts if n or f]
+    acheteur = normaliser(nom_acheteur)
     personnes = {normaliser(n): (n, f) for n, f in contacts
-                 if _est_une_personne(n) and not _RE_ELU.search(normaliser(f))}
-    if chiffres.endswith("00") or len(personnes) >= 2:
+                 if "@" not in n and _est_une_personne(n) and not _RE_ELU.search(normaliser(f))}
+    if _RE_MOBILE.match(chiffres):
+        return "contact", (_libelle(*sorted(personnes.values())[0]) if len(personnes) == 1 else "portable")
+    if _numero_d_accueil(chiffres) or len(personnes) >= 2:
         return "standard", ""
     if personnes:
         return "contact", _libelle(*sorted(personnes.values())[0])
-    services = [(n, f) for n, f in contacts
-                if n and not _RE_STANDARD.search(normaliser(n)) and not _RE_ELU.search(normaliser(f))]
+
+    def est_service(n: str, f: str) -> bool:
+        nn = normaliser(n)
+        return bool(n) and not _RE_STANDARD.search(nn) and not _RE_ELU.search(normaliser(f)) \
+            and not (acheteur and (nn == acheteur or nn in acheteur))
+
+    services = [(n, f) for n, f in contacts if est_service(n, f)]
     if services:
-        return "service", _libelle(*sorted(services)[0])
+        # Le service des marchés ou des achats d'abord.
+        services.sort(key=lambda c: (not _RE_ACHATS.search(normaliser(c[0])), c))
+        return "service", _libelle(*services[0])
     return "standard", ""
 
 
