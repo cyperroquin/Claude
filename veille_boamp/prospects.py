@@ -280,12 +280,15 @@ _RE_ELU = re.compile(r"\b(maire|president|presidente|vice president|vice preside
 
 def _est_une_personne(nom: str) -> bool:
     n = normaliser(nom)
-    if not n:
+    if not n or "@" in nom or _RE_ELU.search(n):  # « Madame la Présidente » n'est pas un contact
         return False
     if _RE_CIVILITE.match(n):
         return True
     mots = n.split()
-    return 2 <= len(mots) <= 4 and not _RE_SERVICE.search(n) and not any(c.isdigit() for c in n)
+    if _RE_SERVICE.search(n) or any(c.isdigit() for c in n) or all(len(m) <= 3 for m in mots):
+        return False  # « Dpb-Maj » : un sigle, pas une personne
+    # Un nom de famille seul (« CHANSIGAUD ») ou prénom + nom.
+    return 1 <= len(mots) <= 4 and (len(mots) > 1 or len(mots[0]) >= 4)
 
 
 def _mots_du_nom(nom: str) -> frozenset:
@@ -497,6 +500,9 @@ NATURE_NUMERO = {
 }
 
 
+SANS_NOM = "aucun nom dans les avis"
+
+
 @dataclass
 class Appel:
     """Un appel à passer : un numéro, la personne (ou le service) à demander,
@@ -533,8 +539,9 @@ class Appel:
         sujet = f"votre consultation « {self.objet_court} » (avis {self.avis.idweb})"
         if self.personne:
             return f"Bonjour, je souhaiterais parler à {self.demander}, le contact de {sujet}."
-        return (f"Bonjour, je vous appelle au sujet de {sujet} : pourriez-vous me passer la personne "
-                f"qui suit l'analyse des offres ? (contact indiqué dans l'avis : {self.demander})")
+        phrase = (f"Bonjour, je vous appelle au sujet de {sujet} : pourriez-vous me passer la personne "
+                  f"qui suit l'analyse des offres ?")
+        return phrase if self.fonction == SANS_NOM else f"{phrase} (contact indiqué dans l'avis : {self.demander})"
 
 
 def liste_appels(acheteurs: list[Acheteur], max_par_acheteur: int = 3,
@@ -559,12 +566,14 @@ def liste_appels(acheteurs: list[Acheteur], max_par_acheteur: int = 3,
                 continue
             for num, nom, fonction in x.contacts:
                 nn = normaliser(nom)
-                if not nn or "@" in nom or _RE_ELU.search(normaliser(fonction)) or _mots_du_nom(nom) in elus:
+                if (not nn or "@" in nom or _RE_ELU.search(nn) or _RE_ELU.search(normaliser(fonction))
+                        or _mots_du_nom(nom) in elus):
                     continue
                 personne = _est_une_personne(nom)
                 if not personne and (_RE_STANDARD.search(nn) or nn == nom_acheteur or nn in nom_acheteur):
                     continue
-                cle = ("p", _mots_du_nom(nom)) if personne else ("s", nn, num)
+                # Une personne une fois ; un service une fois par numéro (graphies variables).
+                cle = ("p", _mots_du_nom(nom)) if personne else ("s", num)
                 garde = retenus.get(cle)
                 if garde and (garde[0].dateparution or date.min) >= (x.dateparution or date.min):
                     continue
@@ -579,4 +588,11 @@ def liste_appels(acheteurs: list[Acheteur], max_par_acheteur: int = 3,
         for x, num, nom, fonction, personne in sorted(retenus.values(), key=ordre)[:max_par_acheteur]:
             nature, _ = nature_telephone(num, a.contacts_tel.get(num, set()), a.nom, a.standards_officiels)
             appels.append(Appel(a, rang, num, nature, nom, fonction, personne, x))
+        if not retenus and a.telephone:
+            # Aucun nom dans les avis : le meilleur numéro, et le service des marchés à demander.
+            idweb = a.source_telephone[0]
+            x = next((v for v in a.avis if v.idweb == idweb), None)
+            if x:
+                appels.append(Appel(a, rang, a.telephone, a.nature_telephone,
+                                    "service des marchés publics", SANS_NOM, False, x))
     return appels

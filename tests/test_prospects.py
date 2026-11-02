@@ -238,3 +238,32 @@ def test_tableur_joint_au_courriel(avis, config):
     assert [nom for nom, _ in c.pieces_jointes] == ["appels-prospects-2026-10-19.csv"]
     assert "Liste d'appels (2 contacts chez 1 acheteur)" in c.html
     assert "LISTE D'APPELS (2 contacts chez 1 acheteur)" in c.texte
+
+
+def test_liste_d_appels_cas_reels():
+    """Cas relevés sur l'essai du 02/11/2026."""
+    from veille_boamp.prospects import Acheteur, AvisTravaux, _est_une_personne, liste_appels
+
+    assert not _est_une_personne("Madame la Présidente du Conseil Régional")
+    assert not _est_une_personne("Dpb-Maj")
+    assert _est_une_personne("CHANSIGAUD") and _est_une_personne("Mme PACE")
+
+    a = Acheteur(cle="d", nom="Communauté Urbaine de Dunkerque")
+    for i, nom in enumerate(["Service Gestion Administrative des Marchés Publics",
+                             "Gestion Administrative des Marchés Pblics"]):
+        a.avis.append(AvisTravaux(f"26-1000{i}", "Objet", date(2026, 10, 1 + i), 1, "u",
+                                  jours_restants=5, contacts=[("03 28 23 69 43", nom, "")]))
+        a.telephones["03 28 23 69 43"] += 1
+    # Un service une seule fois par numéro, malgré les graphies.
+    assert len(liste_appels([a])) == 1
+
+    # Aucun nom dans les avis : une ligne quand même, vers le service des marchés.
+    b = Acheteur(cle="g", nom="Région Grand Est")
+    b.avis.append(AvisTravaux("26-101171", "Accord-cadre", date(2026, 10, 20), 1, "u", jours_restants=18,
+                              contacts=[("03 87 61 66 10", "Région Grand Est", "")]))
+    b.telephones["03 87 61 66 10"] += 1
+    b.contacts_tel["03 87 61 66 10"] = {("Région Grand Est", "")}
+    b.sources_tel["03 87 61 66 10"] = [("26-101171", "u")]
+    [x] = liste_appels([b])
+    assert (x.numero, x.demander, x.avis.idweb) == ("03 87 61 66 10", "service des marchés publics", "26-101171")
+    assert "contact indiqué" not in x.phrase
