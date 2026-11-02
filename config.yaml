@@ -268,6 +268,12 @@ prospects:
   # Acheteurs à ne jamais lister (nom contenant l'un de ces termes).
   exclure: []
 
+  # Vérification des numéros de standard dans l'Annuaire de l'administration
+  # (service-public.fr, open data) : une requête par acheteur listé.
+  annuaire:
+    verifier_standards: true
+    delai_secondes: 20
+
   # Adresses à ne pas prendre pour un contact : plateformes de publication et
   # tribunaux administratifs (cités comme instance de recours).
   domaines_plateformes: [aws-france.com, achatpublic.com, marches-securises.fr,

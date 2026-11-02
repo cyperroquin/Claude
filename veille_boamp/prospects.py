@@ -49,6 +49,8 @@ class Acheteur:
     telephones: Counter = field(default_factory=Counter)
     # Pour chaque numéro : les contacts nommés à côté dans les avis (nom, fonction).
     contacts_tel: dict = field(default_factory=dict)
+    # Numéros d'accueil officiels (Annuaire de l'administration), None si inconnus.
+    standards_officiels: set | None = None
     profil_acheteur: str = ""
     departements: Counter = field(default_factory=Counter)
     type_acheteur: str = ""
@@ -72,10 +74,11 @@ class Acheteur:
         la ligne d'un contact nommé, sinon celle d'un service, sinon le standard."""
         if not self.telephones:
             return "", "", ""
-        ordre = {"contact": 0, "service": 1, "standard": 2}
+        ordre = {"contact": 0, "service": 1, "standard": 2, "standard_verifie": 3}
         choix = []
         for num, nb in self.telephones.items():
-            nature, libelle = nature_telephone(num, self.contacts_tel.get(num, set()), self.nom)
+            nature, libelle = nature_telephone(num, self.contacts_tel.get(num, set()), self.nom,
+                                               self.standards_officiels)
             choix.append((ordre[nature], -nb, num, nature, libelle))
         _, _, num, nature, libelle = min(choix)
         return num, nature, libelle
@@ -86,7 +89,8 @@ class Acheteur:
 
     @property
     def nature_telephone(self) -> str:
-        """« contact », « service » ou « standard » (vide si pas de numéro)."""
+        """« contact », « service », « standard » (probable) ou « standard_verifie »
+        (vide si pas de numéro)."""
         return self._tel_choisi[1]
 
     @property
@@ -289,8 +293,13 @@ def _numero_d_accueil(chiffres: str) -> bool:
     return chiffres.endswith("00") or (len(chiffres) == 10 and chiffres[6:8] == chiffres[8:10])
 
 
-def nature_telephone(numero: str, contacts, nom_acheteur: str = "") -> tuple[str, str]:
-    """Classe un numéro pour la prospection : (« contact » | « service » | « standard », libellé).
+def nature_telephone(numero: str, contacts, nom_acheteur: str = "",
+                     standards_officiels: set | None = None) -> tuple[str, str]:
+    """Classe un numéro pour la prospection : (« contact » | « service » | « standard »
+    | « standard_verifie », libellé).
+
+    - « standard_verifie » : le numéro est le numéro d'accueil officiel de
+      l'organisme dans l'Annuaire de l'administration (service-public.fr) ;
 
     - « contact » : numéro de portable, ou numéro donné avec le nom d'une personne ;
     - « service » : avec le nom d'un service (service des marchés, direction…) ou
@@ -301,6 +310,8 @@ def nature_telephone(numero: str, contacts, nom_acheteur: str = "") -> tuple[str
     C'est une estimation à partir de l'avis : le BOAMP ne dit pas si c'est un standard.
     """
     chiffres = re.sub(r"\D", "", numero)
+    if standards_officiels and chiffres in standards_officiels:
+        return "standard_verifie", ""
     contacts = [(n, f) for n, f in contacts if n or f]
     acheteur = normaliser(nom_acheteur)
     personnes = {normaliser(n): (n, f) for n, f in contacts

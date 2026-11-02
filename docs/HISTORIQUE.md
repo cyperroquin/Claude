@@ -119,3 +119,12 @@ publics. Deux usages :
   plusieurs numéros, le contact direct passe avant le service, puis le
   standard. Les numéros des avis MAPA (`coord.tel`) sont maintenant lus aussi.
   Sélection et scores inchangés.
+- Reporté sur la branche des envois le 02/11 avec l'accord de Cyrille.
+- Demande suivante de Cyrille : vérifier qu'un « standard » en est bien un
+  (idée de départ : chercher le numéro sur internet). Une recherche web n'est
+  pas possible depuis GitHub Actions sans service payant ; on interroge à la
+  place l'Annuaire de l'administration (service-public.fr, open data, sans
+  clé, une requête par acheteur listé) : si le numéro est le numéro d'accueil
+  officiel de l'organisme, il est marqué « Numéro de standard, vérifié » ;
+  sinon un standard estimé est marqué « (probable) ». Module
+  `veille_boamp/annuaire.py`, réglage `prospects.annuaire` dans config.yaml.
