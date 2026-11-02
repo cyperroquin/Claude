@@ -534,15 +534,6 @@ class Appel:
             return f"close le {d:%d/%m} : analyse des offres en cours"
         return f"offres attendues le {d:%d/%m} (dans {j} j)"
 
-    @property
-    def phrase(self) -> str:
-        sujet = f"votre consultation « {self.objet_court} » (avis {self.avis.idweb})"
-        if self.personne:
-            return f"Bonjour, je souhaiterais parler à {self.demander}, le contact de {sujet}."
-        phrase = (f"Bonjour, je vous appelle au sujet de {sujet} : pourriez-vous me passer la personne "
-                  f"qui suit l'analyse des offres ?")
-        return phrase if self.fonction == SANS_NOM else f"{phrase} (contact indiqué dans l'avis : {self.demander})"
-
 
 def liste_appels(acheteurs: list[Acheteur], max_par_acheteur: int = 3,
                  jours_clos_max: int = 60) -> list[Appel]:

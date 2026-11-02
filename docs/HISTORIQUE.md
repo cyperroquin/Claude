@@ -155,3 +155,6 @@ publics. Deux usages :
   (ancien tableau détaillé, avec raisons du score et source du numéro) et
   « Mode d'emploi » (natures de numéros, ordre des appels, calcul du score).
   Dépendance ajoutée : openpyxl.
+- Phrases d'accroche (« Bonjour, je souhaiterais parler à… ») retirées de la
+  liste d'appels, dans l'e-mail comme dans le classeur : jugées inutiles par
+  Cyrille.

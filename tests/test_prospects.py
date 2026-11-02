@@ -215,7 +215,6 @@ def test_liste_d_appels(avis, config):
     assert [(x.numero, x.demander, x.avis.idweb) for x in appels] == [
         ("04 99 52 45 24", "Service Marchés", "26-100545"), ("05 67 72 71 00", "OUEST SITE", "26-99504")]
     assert appels[0].nature_libelle == "ligne du service"
-    assert "pourriez-vous me passer la personne qui suit l'analyse des offres" in appels[0].phrase
 
     # Personne nommée sur un standard, élu écarté, consultation close il y a longtemps écartée,
     # même personne gardée une fois (avis le plus récent), close récemment avant ouverte.
@@ -240,7 +239,6 @@ def test_liste_d_appels(avis, config):
         ("26-97553", "M FEREYRE", "ligne directe"),
         ("26-101969", "Justinien Belabbas-Weil", "standard (vérifié)"),
     ]
-    assert appels[1].phrase.startswith("Bonjour, je souhaiterais parler à Justinien Belabbas-Weil, le contact")
     assert appels[0].statut.startswith("close le") and "analyse des offres" in appels[0].statut
 
     from veille_boamp.mail import COLONNES_APPELS
@@ -258,6 +256,7 @@ def test_tableur_joint_au_courriel(avis, config):
     assert "Chacun reçoit et compare" not in c.html and "Chacun reçoit et compare" not in c.texte
     assert "Les noms et numéros de contact sont issus de l'avis. La même liste est jointe en tableur Excel" in c.html
     assert "Détail des acheteurs" not in c.html and ">Score</th>" not in c.html
+    assert "Bonjour, je" not in c.html and "Bonjour, je" not in c.texte  # phrases d'accroche retirées
     onglets = classeur(c)
     assert list(onglets) == ["Appels", "Acheteurs", "Mode d'emploi"]
     assert onglets["Appels"][1][:5] == [1, "Spl Arac Occitanie", "04 99 52 45 24", "ligne du service", "Service Marchés"]
@@ -290,4 +289,3 @@ def test_liste_d_appels_cas_reels():
     b.sources_tel["03 87 61 66 10"] = [("26-101171", "u")]
     [x] = liste_appels([b])
     assert (x.numero, x.demander, x.avis.idweb) == ("03 87 61 66 10", "service des marchés publics", "26-101171")
-    assert "contact indiqué" not in x.phrase

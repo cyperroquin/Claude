@@ -86,7 +86,7 @@ def construire_rien(aujourdhui: date, config: dict, nb_analyses: int) -> Courrie
 
 COLONNES_APPELS = [
     "Rang", "Acheteur", "Téléphone", "Nature du numéro", "Demander", "Fonction", "Consultation",
-    "Avis", "Lien de l'avis", "Statut", "Phrase d'accroche", "E-mail de l'acheteur", "Profil acheteur",
+    "Avis", "Lien de l'avis", "Statut", "E-mail de l'acheteur", "Profil acheteur",
     "Appelé le", "Résultat", "À rappeler le",
 ]
 COLONNES_ACHETEURS = [
@@ -161,9 +161,9 @@ def tableur_prospects(acheteurs: list, appels: list) -> bytes:
     ws.title = "Appels"
     feuille(ws, COLONNES_APPELS, [[
         x.rang, x.acheteur.nom, x.numero, x.nature_libelle, x.demander, x.fonction, x.avis.objet,
-        x.avis.idweb, x.avis.url, x.statut, x.phrase, x.acheteur.contact, x.acheteur.profil_acheteur,
+        x.avis.idweb, x.avis.url, x.statut, x.acheteur.contact, x.acheteur.profil_acheteur,
         "", "", "",
-    ] for x in appels], [6, 28, 16, 18, 26, 24, 45, 11, 20, 28, 60, 28, 20, 12, 30, 14])
+    ] for x in appels], [6, 28, 16, 18, 26, 24, 45, 11, 20, 28, 28, 20, 12, 30, 14])
 
     feuille(wb.create_sheet("Acheteurs"), COLONNES_ACHETEURS, [[
         i, a.nom, a.type_acheteur or "Autre acheteur public",

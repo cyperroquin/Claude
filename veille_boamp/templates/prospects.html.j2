@@ -38,8 +38,7 @@
         </td>
         <td style="border-bottom:1px solid #e5e5e5;">
           <a href="{{ x.avis.url }}">{{ x.objet_court }}</a> <span style="color:#888;">(avis {{ x.avis.idweb }})</span><br>
-          <span style="font-size:12px;{% if x.avis.jours_restants is not none and x.avis.jours_restants < 0 %}color:#0b6e4f;font-weight:bold;{% else %}color:#666;{% endif %}">{{ x.statut | capitalize }}</span><br>
-          <span style="font-size:12px;color:#444;font-style:italic;">« {{ x.phrase }} »</span>
+          <span style="font-size:12px;{% if x.avis.jours_restants is not none and x.avis.jours_restants < 0 %}color:#0b6e4f;font-weight:bold;{% else %}color:#666;{% endif %}">{{ x.statut | capitalize }}</span>
         </td>
       </tr>
     {% endfor %}
