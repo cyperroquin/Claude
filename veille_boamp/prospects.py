@@ -49,6 +49,8 @@ class Acheteur:
     telephones: Counter = field(default_factory=Counter)
     # Pour chaque numéro : les contacts nommés à côté dans les avis (nom, fonction).
     contacts_tel: dict = field(default_factory=dict)
+    # Pour chaque numéro : les avis où il figure (idweb, lien), du plus récent au plus ancien.
+    sources_tel: dict = field(default_factory=dict)
     # Numéros d'accueil officiels (Annuaire de l'administration), None si inconnus.
     standards_officiels: set | None = None
     profil_acheteur: str = ""
@@ -92,6 +94,12 @@ class Acheteur:
         """« contact », « service », « standard » (probable) ou « standard_verifie »
         (vide si pas de numéro)."""
         return self._tel_choisi[1]
+
+    @property
+    def source_telephone(self) -> tuple[str, str]:
+        """(idweb, lien) de l'avis le plus récent où figure le numéro affiché."""
+        sources = self.sources_tel.get(self.telephone) or []
+        return max(sources, key=lambda x: int(re.sub(r"\D", "", x[0]) or 0)) if sources else ("", "")
 
     @property
     def libelle_telephone(self) -> str:
@@ -400,6 +408,8 @@ class Prospection:
             for num, nom, fonction in _contacts_telephoniques(donnees):
                 a.telephones[num] += 1
                 a.contacts_tel.setdefault(num, set()).add((nom, fonction))
+                if (avis.idweb, avis.url) not in a.sources_tel.setdefault(num, []):
+                    a.sources_tel[num].append((avis.idweb, avis.url))
             # Profil acheteur de l'avis le plus récent qui en donne un.
             profil = _profil_acheteur(donnees)
             if profil and (not a.profil_acheteur or (avis.dateparution or date.min) >= a._date_profil):

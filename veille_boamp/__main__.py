@@ -213,6 +213,11 @@ def prospects(config: dict, client: ClientBoamp, journal: Journal, aujourdhui: d
         for a in acheteurs:
             if a.telephones:
                 a.standards_officiels = annuaire.standards(a.siret, a.nom)
+    for a in acheteurs:  # Journal : d'où vient chaque numéro (vérification manuelle).
+        for num, nb in a.telephones.most_common():
+            log.info("Tél. %s : %s (%s avis : %s) contacts %s", a.nom, num, nb,
+                     ", ".join(sorted(i for i, _ in a.sources_tel.get(num, []))),
+                     sorted(a.contacts_tel.get(num, set())))
     log.info("Téléphones : contact direct %s, ligne du service %s, standard vérifié %s, standard probable %s",
              *(sum(1 for a in acheteurs if a.nature_telephone == n)
                for n in ("contact", "service", "standard_verifie", "standard")))
