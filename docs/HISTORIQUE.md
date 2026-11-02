@@ -128,3 +128,11 @@ publics. Deux usages :
   officiel de l'organisme, il est marqué « Numéro de standard, vérifié » ;
   sinon un standard estimé est marqué « (probable) ». Module
   `veille_boamp/annuaire.py`, réglage `prospects.annuaire` dans config.yaml.
+- Question de Cyrille : d'où vient le numéro affiché ? Tous les numéros sont
+  ceux écrits par l'acheteur dans ses avis (rubrique contact). Le numéro
+  affiché peut venir de n'importe lequel de ses avis des 90 jours, pas
+  seulement des 3 dernières consultations listées. Ajout sous chaque numéro
+  d'un lien « Source : avis 26-… » vers l'avis où il figure, et dans le
+  journal du workflow de la liste complète numéro → avis → contact.
+  Correction : un élu cité sans sa fonction dans un avis (« Mme Catherine
+  Trautmann », présidente ailleurs) n'est plus pris pour un contact direct.

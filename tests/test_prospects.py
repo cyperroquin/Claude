@@ -172,3 +172,16 @@ def test_nature_du_telephone_cas_reels():
     # Plusieurs services : celui des marchés d'abord.
     assert nature_telephone("04 99 52 45 24", {("EST SITE", ""), ("Service Marchés", "")}) == \
         ("service", "Service Marchés")
+
+
+def test_elu_reconnu_sans_sa_fonction_et_source_du_numero(avis, config):
+    from veille_boamp.prospects import nature_telephone
+    # Strasbourg (essai du 02/11) : la présidente apparaît une fois sans sa fonction.
+    assert nature_telephone("03 68 98 51 19", {("Mme Catherine Trautmann", ""),
+                                               ("TRAUTMANN Catherine", "Présidente")})[0] == "standard"
+    p = Prospection(config)
+    arac = p.noter(p.agreger(avis, AUJOURDHUI), AUJOURDHUI)[0]
+    assert arac.source_telephone == ("26-100545", "https://www.boamp.fr/avis/detail/26-100545")
+    c = construire_prospects([arac], AUJOURDHUI, config, len(avis))
+    assert "Source : avis 26-100545" in c.html
+    assert "source : https://www.boamp.fr/avis/detail/26-100545" in c.texte

@@ -287,6 +287,11 @@ def _est_une_personne(nom: str) -> bool:
     return 2 <= len(mots) <= 4 and not _RE_SERVICE.search(n) and not any(c.isdigit() for c in n)
 
 
+def _mots_du_nom(nom: str) -> frozenset:
+    return frozenset(m for m in normaliser(nom).split()
+                     if m not in ("m", "mr", "mme", "mlle", "madame", "monsieur", "mademoiselle"))
+
+
 def _libelle(nom: str, fonction: str) -> str:
     return f"{nom} ({fonction})" if nom and fonction else nom or fonction
 
@@ -322,8 +327,12 @@ def nature_telephone(numero: str, contacts, nom_acheteur: str = "",
         return "standard_verifie", ""
     contacts = [(n, f) for n, f in contacts if n or f]
     acheteur = normaliser(nom_acheteur)
+    # Un élu (maire, président) peut apparaître dans un autre avis sans sa fonction :
+    # on le reconnaît à ses mots de nom (« Mme Catherine Trautmann » = « TRAUTMANN Catherine »).
+    elus = {_mots_du_nom(n) for n, f in contacts if _RE_ELU.search(normaliser(f))}
     personnes = {normaliser(n): (n, f) for n, f in contacts
-                 if "@" not in n and _est_une_personne(n) and not _RE_ELU.search(normaliser(f))}
+                 if "@" not in n and _est_une_personne(n) and not _RE_ELU.search(normaliser(f))
+                 and _mots_du_nom(n) not in elus}
     if _RE_MOBILE.match(chiffres):
         return "contact", (_libelle(*sorted(personnes.values())[0]) if len(personnes) == 1 else "portable")
     if _numero_d_accueil(chiffres) or len(personnes) >= 2:
@@ -334,6 +343,7 @@ def nature_telephone(numero: str, contacts, nom_acheteur: str = "",
     def est_service(n: str, f: str) -> bool:
         nn = normaliser(n)
         return bool(n) and not _RE_STANDARD.search(nn) and not _RE_ELU.search(normaliser(f)) \
+            and _mots_du_nom(n) not in elus \
             and not (acheteur and (nn == acheteur or nn in acheteur))
 
     services = [(n, f) for n, f in contacts if est_service(n, f)]
