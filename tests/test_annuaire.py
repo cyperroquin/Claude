@@ -66,3 +66,15 @@ def test_standard_verifie_dans_le_classement():
     assert (a.telephone, a.nature_telephone) == ("03 87 61 66 10", "service")
     a.telephones = a.telephones.__class__({"03 87 33 60 00": 5})
     assert (a.telephone, a.nature_telephone) == ("03 87 33 60 00", "standard_verifie")
+
+
+def test_antennes_ecartees():
+    principale = {"nom": "Conseil départemental - Somme", "siret": "22800001400016",
+                  "telephone": '[{"valeur": "03 22 71 80 80"}]'}
+    antenne = {"nom": "Centre Autonomie Les Hauts de Somme", "siret": "22800001400016",
+               "telephone": '[{"valeur": "03 22 97 21 26"}]'}
+    assert Annuaire({}, session=Session([principale, antenne])).standards(
+        "22800001400016", "Conseil Départemental de la Somme") == {"0322718080"}
+    # Que des antennes : pas de vérification plutôt qu'un faux standard.
+    antennes = [dict(antenne, telephone=f'[{{"valeur": "04 90 00 00 0{i}"}}]') for i in range(3)]
+    assert Annuaire({}, session=Session(antennes)).standards("22840001600017", "Département de Vaucluse") is None

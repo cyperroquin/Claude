@@ -23,6 +23,10 @@ log = logging.getLogger(__name__)
 
 URL = ("https://api-lannuaire.service-public.fr/api/explore/v2.1/catalog/datasets/"
        "api-lannuaire-administration/records")
+# Noms des fiches principales dans l'annuaire (« Conseil départemental - Somme »…).
+_RE_PRINCIPALE = re.compile(r"^(conseil departemental|conseil regional|mairie|metropole|eurometropole|"
+                            r"communaute urbaine|communaute d agglomeration|communaute de communes|"
+                            r"agglomeration|prefecture|collectivite)\b")
 _RE_NUMERO = re.compile(r"(?:\+33\s*\(?0?\)?\s*|\b0)[1-9](?:[\s.-]?\d{2}){4}\b")
 
 
@@ -90,6 +94,12 @@ class Annuaire:
             cle = normaliser(nom_acheteur)
             retenues = [f for f in fiches if normaliser(_nom(f)) and
                         (normaliser(_nom(f)) in cle or cle in normaliser(_nom(f)))]
+        # Plusieurs fiches (antennes, centres sociaux…) : on ne garde que la fiche
+        # principale de l'organisme ; sans elle, on ne vérifie rien plutôt que de
+        # prendre le numéro d'une antenne pour le standard.
+        if len(retenues) > 1:
+            principales = [f for f in retenues if _RE_PRINCIPALE.match(normaliser(_nom(f)))]
+            retenues = principales if principales else (retenues if len(retenues) <= 2 else [])
         numeros = set()
         for f in retenues:
             numeros |= numeros_du_texte(_champs_telephone(f))
