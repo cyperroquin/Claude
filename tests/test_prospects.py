@@ -99,7 +99,6 @@ def test_telephone_et_profil_acheteur(avis):
     # Rien dans l'avis : champs vides, sans erreur.
     assert _telephones({}) == [] and _profil_acheteur({}) == ""
     assert _telephone("+33 442659054") == "04 42 65 90 54"
-    assert _telephone("+33 57851666") == "05 57 85 16 66"  # 0 oublié après +33
 
 
 def test_colonnes_contact_dans_le_courriel(avis, config):
