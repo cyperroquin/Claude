@@ -37,6 +37,7 @@ class AvisTravaux:
     jours_restants: int | None = None
     part_qualitatif: float | None = None
     procedures: list[str] = field(default_factory=list)  # libellés B2 trouvés
+    contacts: list = field(default_factory=list)  # (téléphone, nom, fonction) de l'avis
 
 
 @dataclass
@@ -412,6 +413,7 @@ class Prospection:
                 jours_restants=(avis.datelimite - aujourdhui).days if avis.datelimite else None,
                 part_qualitatif=part,
                 procedures=self._procedures(rec, donnees, avis),
+                contacts=_contacts_telephoniques(donnees),
             ))
             a.siret = a.siret or _siret(donnees)
             a.emails.update(_emails(donnees, self.plateformes))
@@ -484,3 +486,97 @@ class Prospection:
             -len(a.avis), a.nom,
         ))
         return retenus
+
+
+# Liste d'appels ---------------------------------------------------------------
+NATURE_NUMERO = {
+    "contact": "ligne directe",
+    "service": "ligne du service",
+    "standard_verifie": "standard (vérifié)",
+    "standard": "standard (probable)",
+}
+
+
+@dataclass
+class Appel:
+    """Un appel à passer : un numéro, la personne (ou le service) à demander,
+    et la consultation dont parler, tous lus dans le même avis."""
+    acheteur: Acheteur
+    rang: int                 # rang de l'acheteur dans l'e-mail
+    numero: str
+    nature: str               # clé de NATURE_NUMERO
+    demander: str             # nom de la personne, ou du service
+    fonction: str
+    personne: bool
+    avis: AvisTravaux
+
+    @property
+    def nature_libelle(self) -> str:
+        return NATURE_NUMERO.get(self.nature, "")
+
+    @property
+    def objet_court(self) -> str:
+        o = " ".join(self.avis.objet.split())
+        return o if len(o) <= 80 else o[:79].rstrip() + "…"
+
+    @property
+    def statut(self) -> str:
+        j, d = self.avis.jours_restants, self.avis.datelimite
+        if j is None:
+            return "date limite non indiquée"
+        if j < 0:
+            return f"close le {d:%d/%m} : analyse des offres en cours"
+        return f"offres attendues le {d:%d/%m} (dans {j} j)"
+
+    @property
+    def phrase(self) -> str:
+        sujet = f"votre consultation « {self.objet_court} » (avis {self.avis.idweb})"
+        if self.personne:
+            return f"Bonjour, je souhaiterais parler à {self.demander}, le contact de {sujet}."
+        return (f"Bonjour, je vous appelle au sujet de {sujet} : pourriez-vous me passer la personne "
+                f"qui suit l'analyse des offres ? (contact indiqué dans l'avis : {self.demander})")
+
+
+def liste_appels(acheteurs: list[Acheteur], max_par_acheteur: int = 3,
+                 jours_clos_max: int = 60) -> list[Appel]:
+    """Pour chaque acheteur (dans l'ordre de l'e-mail), les contacts nommés de ses
+    avis : une personne (sinon un service), avec son numéro et la consultation.
+
+    - pas d'élu (maire, président), pas de contact sans nom ;
+    - une même personne une seule fois, avec son avis le plus récent ;
+    - consultations closes depuis plus de `jours_clos_max` jours écartées ;
+    - personnes avant services, puis consultations récemment closes (l'acheteur
+      compare les offres), puis ouvertes, puis du plus récent au plus ancien.
+    """
+    appels = []
+    for rang, a in enumerate(acheteurs, 1):
+        tous = [(n, f) for x in a.avis for _, n, f in x.contacts]
+        elus = {_mots_du_nom(n) for n, f in tous if _RE_ELU.search(normaliser(f))}
+        nom_acheteur = normaliser(a.nom)
+        retenus: dict = {}
+        for x in a.avis:
+            if x.jours_restants is not None and x.jours_restants < -jours_clos_max:
+                continue
+            for num, nom, fonction in x.contacts:
+                nn = normaliser(nom)
+                if not nn or "@" in nom or _RE_ELU.search(normaliser(fonction)) or _mots_du_nom(nom) in elus:
+                    continue
+                personne = _est_une_personne(nom)
+                if not personne and (_RE_STANDARD.search(nn) or nn == nom_acheteur or nn in nom_acheteur):
+                    continue
+                cle = ("p", _mots_du_nom(nom)) if personne else ("s", nn, num)
+                garde = retenus.get(cle)
+                if garde and (garde[0].dateparution or date.min) >= (x.dateparution or date.min):
+                    continue
+                retenus[cle] = (x, num, nom, fonction, personne)
+
+        def ordre(v):
+            x, _, _, _, personne = v
+            j = x.jours_restants
+            etat = 0 if (j is not None and j < 0) else 1 if j is not None else 2
+            return (not personne, etat, -(x.dateparution or date.min).toordinal())
+
+        for x, num, nom, fonction, personne in sorted(retenus.values(), key=ordre)[:max_par_acheteur]:
+            nature, _ = nature_telephone(num, a.contacts_tel.get(num, set()), a.nom, a.standards_officiels)
+            appels.append(Appel(a, rang, num, nature, nom, fonction, personne, x))
+    return appels

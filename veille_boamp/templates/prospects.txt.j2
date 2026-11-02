@@ -2,6 +2,24 @@
 
 Les maîtres d'ouvrage qui ont publié le plus d'appels d'offres de travaux ces {{ jours }} derniers jours ({{ nb_avis }} avis analysés).
 {{ nouveaux }} acheteur(s) apparaissent pour la première fois.
+{% if appels %}
+
+LISTE D'APPELS ({{ appels | length }} contact{{ 's' if appels | length > 1 }} chez {{ nb_appelables }} acheteur{{ 's' if nb_appelables > 1 }})
+Chaque ligne vient d'un avis. Même si le numéro est un standard, demandez la personne par son nom.
+Tableur joint pour suivre vos appels.
+
+{% for x in appels %}
+{{ x.rang }}. {{ x.acheteur.nom }} — {{ x.numero }} ({{ x.nature_libelle }})
+   Demander : {{ x.demander }}{% if x.fonction %} ({{ x.fonction }}){% endif %}
+
+   À propos : {{ x.objet_court }} — avis {{ x.avis.idweb }}, {{ x.statut }}
+   {{ x.avis.url }}
+   « {{ x.phrase }} »
+
+{% endfor %}
+
+DÉTAIL DES ACHETEURS
+{% endif %}
 
 {% for a in acheteurs %}
 {{ loop.index }}. {{ a.nom }} — score {{ a.score }}{% if not a.deja_signale %} — NOUVEAU{% endif %}

@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import base64
+import csv
+import io
 import os
 import smtplib
 import ssl
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, timedelta
 from email.message import EmailMessage
 from email.utils import formatdate, make_msgid
@@ -32,6 +35,7 @@ class Courriel:
     sujet: str
     texte: str
     html: str
+    pieces_jointes: list = field(default_factory=list)  # (nom de fichier, contenu en octets)
 
 
 def _env() -> Environment:
@@ -81,18 +85,49 @@ def construire_rien(aujourdhui: date, config: dict, nb_analyses: int) -> Courrie
                     env.get_template("rien.html.j2").render(**ctx))
 
 
+COLONNES_APPELS = [
+    "Rang", "Acheteur", "Type d'acheteur", "Score", "Téléphone", "Nature du numéro", "Demander",
+    "Fonction", "Phrase d'accroche", "Avis", "Consultation", "Lien de l'avis", "Date limite",
+    "Statut", "E-mail de l'acheteur", "Profil acheteur", "Appelé le", "Résultat", "À rappeler le",
+]
+
+
+def tableur_appels(appels: list) -> bytes:
+    """Liste d'appels en CSV (point-virgule, UTF-8 avec BOM : s'ouvre tel quel dans Excel)."""
+    f = io.StringIO()
+    w = csv.writer(f, delimiter=";", lineterminator="\r\n")
+    w.writerow(COLONNES_APPELS)
+    for x in appels:
+        a = x.acheteur
+        w.writerow([
+            x.rang, a.nom, a.type_acheteur or "Autre acheteur public", a.score, x.numero,
+            x.nature_libelle, x.demander, x.fonction, x.phrase, x.avis.idweb, x.avis.objet,
+            x.avis.url, x.avis.datelimite.strftime("%d/%m/%Y") if x.avis.datelimite else "",
+            x.statut, a.contact, a.profil_acheteur, "", "", "",
+        ])
+    return ("\ufeff" + f.getvalue()).encode("utf-8")
+
+
 def construire_prospects(acheteurs: list, aujourdhui: date, config: dict, nb_avis: int) -> Courriel:
+    from .prospects import liste_appels
+
     p = config.get("prospects") or {}
+    reglages = p.get("appels") or {}
+    appels = liste_appels(acheteurs, int(reglages.get("max_par_acheteur", 3)),
+                          int(reglages.get("jours_clos_max", 60)))
     lundi = aujourdhui - timedelta(days=aujourdhui.weekday())
     n = len(acheteurs)
     sujet = (f"[Prospects BOAMP] {n} acheteur{'s' if n > 1 else ''} de travaux actif{'s' if n > 1 else ''}, "
              f"semaine du {lundi.strftime('%d/%m/%Y')}")
     ctx = dict(sujet=sujet, aujourdhui=aujourdhui, acheteurs=acheteurs, nb_avis=nb_avis,
                jours=p.get("jours", 90), jours_recents=p.get("jours_recents", 7),
-               nouveaux=sum(1 for a in acheteurs if not a.deja_signale))
+               nouveaux=sum(1 for a in acheteurs if not a.deja_signale), appels=appels,
+               nb_appelables=len({x.rang for x in appels}))
     env = _env()
+    fichier = f"appels-prospects-{lundi.isoformat()}.csv"
     return Courriel(sujet, env.get_template("prospects.txt.j2").render(**ctx),
-                    env.get_template("prospects.html.j2").render(**ctx))
+                    env.get_template("prospects.html.j2").render(**ctx),
+                    [(fichier, tableur_appels(appels))] if appels else [])
 
 
 def envoyer(c: Courriel) -> None:
@@ -108,7 +143,9 @@ def envoyer(c: Courriel) -> None:
         r = requests.post(
             "https://api.resend.com/emails",
             headers={"Authorization": f"Bearer {os.environ['RESEND_API_KEY']}"},
-            json={"from": expediteur, "to": dest, "subject": c.sujet, "text": c.texte, "html": c.html},
+            json={"from": expediteur, "to": dest, "subject": c.sujet, "text": c.texte, "html": c.html,
+                  **({"attachments": [{"filename": nom, "content": base64.b64encode(contenu).decode("ascii")}
+                                      for nom, contenu in c.pieces_jointes]} if c.pieces_jointes else {})},
             timeout=30,
         )
         if r.status_code >= 300:
@@ -127,6 +164,8 @@ def envoyer(c: Courriel) -> None:
     msg["Message-ID"] = make_msgid(domain=expediteur.split("@")[-1].strip(">"))
     msg.set_content(c.texte)
     msg.add_alternative(c.html, subtype="html")
+    for nom, contenu in c.pieces_jointes:
+        msg.add_attachment(contenu, maintype="text", subtype="csv", filename=nom)
 
     contexte = ssl.create_default_context()
     if port == 465:

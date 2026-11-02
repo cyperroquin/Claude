@@ -225,6 +225,8 @@ def prospects(config: dict, client: ClientBoamp, journal: Journal, aujourdhui: d
     if dry_run:
         apercu = RACINE / "apercu_prospects.html"
         apercu.write_text(courriel.html, encoding="utf-8")
+        for nom, contenu in courriel.pieces_jointes:
+            (RACINE / f"apercu_{nom}").write_bytes(contenu)
         print(f"Objet : {courriel.sujet}\n")
         print(courriel.texte)
         print(f"(--dry-run : rien n'a été envoyé ; version HTML dans {apercu})")

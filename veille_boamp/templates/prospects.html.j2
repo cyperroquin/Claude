@@ -9,6 +9,47 @@
     {{ nouveaux }} acheteur{{ 's' if nouveaux > 1 }} apparai{{ 'ssent' if nouveaux > 1 else 't' }} pour la première fois.
   </p>
 
+  {% if appels %}
+  <h3 style="margin-bottom:4px;">Liste d'appels ({{ appels | length }} contact{{ 's' if appels | length > 1 }} chez {{ nb_appelables }} acheteur{{ 's' if nb_appelables > 1 }})</h3>
+  <p style="margin-top:0;color:#555;font-size:13px;">
+    Chaque ligne vient d'un avis : la personne (ou le service) nommée comme contact, son numéro et la consultation dont parler.
+    Même si le numéro est un standard, demandez la personne par son nom. Les consultations closes récemment passent en premier :
+    l'acheteur est en train de comparer les offres. La même liste est jointe en tableur, avec des colonnes pour suivre vos appels.
+  </p>
+  <table role="presentation" cellpadding="6" cellspacing="0" border="0" style="border-collapse:collapse;width:100%;font-size:13px;margin-bottom:24px;">
+    <thead>
+      <tr style="background:#eef6f1;text-align:left;">
+        <th style="border-bottom:2px solid #ccc;">#</th>
+        <th style="border-bottom:2px solid #ccc;">Acheteur</th>
+        <th style="border-bottom:2px solid #ccc;">Appeler</th>
+        <th style="border-bottom:2px solid #ccc;">Demander</th>
+        <th style="border-bottom:2px solid #ccc;">À propos de</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for x in appels %}
+      <tr style="vertical-align:top;">
+        <td style="border-bottom:1px solid #e5e5e5;">{{ x.rang }}</td>
+        <td style="border-bottom:1px solid #e5e5e5;"><strong>{{ x.acheteur.nom }}</strong></td>
+        <td style="border-bottom:1px solid #e5e5e5;white-space:nowrap;">
+          <a href="tel:{{ x.numero | replace(' ', '') }}">{{ x.numero }}</a><br>
+          <span style="font-size:11px;color:#888;">{{ x.nature_libelle }}</span>
+        </td>
+        <td style="border-bottom:1px solid #e5e5e5;">
+          <strong>{{ x.demander }}</strong>{% if x.fonction %}<br><span style="font-size:12px;color:#666;">{{ x.fonction }}</span>{% endif %}
+        </td>
+        <td style="border-bottom:1px solid #e5e5e5;">
+          <a href="{{ x.avis.url }}">{{ x.objet_court }}</a> <span style="color:#888;">(avis {{ x.avis.idweb }})</span><br>
+          <span style="font-size:12px;{% if x.avis.jours_restants is not none and x.avis.jours_restants < 0 %}color:#0b6e4f;font-weight:bold;{% else %}color:#666;{% endif %}">{{ x.statut | capitalize }}</span><br>
+          <span style="font-size:12px;color:#444;font-style:italic;">« {{ x.phrase }} »</span>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <h3 style="margin-bottom:4px;">Détail des acheteurs</h3>
+  {% endif %}
+
   <table role="presentation" cellpadding="6" cellspacing="0" border="0" style="border-collapse:collapse;width:100%;font-size:14px;">
     <thead>
       <tr style="background:#f1f3f5;text-align:left;">

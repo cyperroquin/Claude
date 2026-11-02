@@ -185,3 +185,56 @@ def test_elu_reconnu_sans_sa_fonction_et_source_du_numero(avis, config):
     c = construire_prospects([arac], AUJOURDHUI, config, len(avis))
     assert "Source : avis 26-100545" in c.html
     assert "source : https://www.boamp.fr/avis/detail/26-100545" in c.texte
+
+
+def test_liste_d_appels(avis, config):
+    """Une ligne par contact nommé dans un avis : numéro, personne à demander, consultation."""
+    from veille_boamp.mail import tableur_appels
+    from veille_boamp.prospects import Acheteur, AvisTravaux, liste_appels
+
+    p = Prospection(config)
+    arac = p.noter(p.agreger(avis, AUJOURDHUI), AUJOURDHUI)[0]
+    appels = liste_appels([arac])
+    assert [(x.numero, x.demander, x.avis.idweb) for x in appels] == [
+        ("04 99 52 45 24", "Service Marchés", "26-100545"), ("05 67 72 71 00", "OUEST SITE", "26-99504")]
+    assert appels[0].nature_libelle == "ligne du service"
+    assert "pourriez-vous me passer la personne qui suit l'analyse des offres" in appels[0].phrase
+
+    # Personne nommée sur un standard, élu écarté, consultation close il y a longtemps écartée,
+    # même personne gardée une fois (avis le plus récent), close récemment avant ouverte.
+    a = Acheteur(cle="r", nom="Région Auvergne-Rhône-Alpes", standards_officiels={"0426734000"})
+    def av(idweb, jours, parue, contacts):
+        x = AvisTravaux(idweb, f"Objet {idweb}", parue, 1, f"https://www.boamp.fr/avis/detail/{idweb}",
+                        datelimite=date(2026, 11, 2) + __import__("datetime").timedelta(days=jours),
+                        jours_restants=jours, contacts=contacts)
+        for num, nom, f in contacts:
+            a.telephones[num] += 1
+            a.contacts_tel.setdefault(num, set()).add((nom, f))
+        return x
+    a.avis = [
+        av("26-101969", 17, date(2026, 10, 20), [("04 26 73 40 00", "Justinien Belabbas-Weil", "")]),
+        av("26-97553", -11, date(2026, 10, 9), [("04 26 28 63 51", "M FEREYRE", "Responsable d'opérations routières")]),
+        av("26-90000", -11, date(2026, 9, 9), [("04 26 28 63 51", "M FEREYRE", "Responsable d'opérations routières")]),
+        av("26-80000", -70, date(2026, 8, 1), [("04 26 11 11 11", "Mme Ancienne", "")]),
+        av("26-85000", 5, date(2026, 9, 1), [("04 26 73 40 00", "WAUQUIEZ Laurent", "Président")]),
+    ]
+    appels = liste_appels([a])
+    assert [(x.avis.idweb, x.demander, x.nature_libelle) for x in appels] == [
+        ("26-97553", "M FEREYRE", "ligne directe"),
+        ("26-101969", "Justinien Belabbas-Weil", "standard (vérifié)"),
+    ]
+    assert appels[1].phrase.startswith("Bonjour, je souhaiterais parler à Justinien Belabbas-Weil, le contact")
+    assert appels[0].statut.startswith("close le") and "analyse des offres" in appels[0].statut
+
+    csv = tableur_appels(appels).decode("utf-8-sig").splitlines()
+    assert csv[0].startswith("Rang;Acheteur;") and csv[0].endswith("Appelé le;Résultat;À rappeler le")
+    assert ";M FEREYRE;Responsable d'opérations routières;" in csv[1]
+
+
+def test_tableur_joint_au_courriel(avis, config):
+    p = Prospection(config)
+    acheteurs = p.noter(p.agreger(avis, AUJOURDHUI), AUJOURDHUI)
+    c = construire_prospects(acheteurs, AUJOURDHUI, config, len(avis))
+    assert [nom for nom, _ in c.pieces_jointes] == ["appels-prospects-2026-10-19.csv"]
+    assert "Liste d'appels (2 contacts chez 1 acheteur)" in c.html
+    assert "LISTE D'APPELS (2 contacts chez 1 acheteur)" in c.texte

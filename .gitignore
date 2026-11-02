@@ -1,6 +1,6 @@
 .env
 veille.db
-apercu_email.html
+apercu_*
 *.log
 __pycache__/
 .pytest_cache/

@@ -136,3 +136,12 @@ publics. Deux usages :
   journal du workflow de la liste complète numéro → avis → contact.
   Correction : un élu cité sans sa fonction dans un avis (« Mme Catherine
   Trautmann », présidente ailleurs) n'est plus pris pour un contact direct.
+- Liste d'appels (demande de Cyrille, recommandations acceptées) : en tête de
+  l'e-mail du lundi et en tableur CSV joint, une ligne par contact nommé dans
+  un avis : numéro (avec sa nature), personne ou service à demander, fonction,
+  consultation (objet, lien, statut) et phrase d'accroche. Au plus 3 contacts
+  par acheteur ; pas d'élus ni de contacts sans nom ; une personne une seule
+  fois (avis le plus récent) ; consultations closes depuis plus de 60 jours
+  écartées ; personnes avant services, puis consultations closes récemment
+  (l'acheteur compare les offres), puis ouvertes. Réglages `prospects.appels`.
+  Le tableur a des colonnes vides « Appelé le », « Résultat », « À rappeler le ».
