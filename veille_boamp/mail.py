@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import base64
-import csv
 import io
 import os
 import smtplib
@@ -86,26 +85,106 @@ def construire_rien(aujourdhui: date, config: dict, nb_analyses: int) -> Courrie
 
 
 COLONNES_APPELS = [
-    "Rang", "Acheteur", "Type d'acheteur", "Score", "Téléphone", "Nature du numéro", "Demander",
-    "Fonction", "Phrase d'accroche", "Avis", "Consultation", "Lien de l'avis", "Date limite",
-    "Statut", "E-mail de l'acheteur", "Profil acheteur", "Appelé le", "Résultat", "À rappeler le",
+    "Rang", "Acheteur", "Téléphone", "Nature du numéro", "Demander", "Fonction", "Consultation",
+    "Avis", "Lien de l'avis", "Statut", "Phrase d'accroche", "E-mail de l'acheteur", "Profil acheteur",
+    "Appelé le", "Résultat", "À rappeler le",
+]
+COLONNES_ACHETEURS = [
+    "Rang", "Acheteur", "Type d'acheteur", "Nouveau ?", "Score", "Raisons du score",
+    "Appels d'offres de travaux", "Lots", "Publiés cette semaine", "E-mail", "Téléphone",
+    "Nature du numéro", "Contact du numéro", "Avis source du numéro", "Profil acheteur",
+    "Fiche entreprise", "Dernières consultations",
+]
+MODE_D_EMPLOI = [
+    ("Onglet « Appels »", "Une ligne par contact nommé dans un avis : le numéro, la personne (ou le service) "
+     "à demander et la consultation dont parler. Même si le numéro est un standard, demandez la personne par "
+     "son nom. Les colonnes « Appelé le », « Résultat » et « À rappeler le » servent à suivre vos appels."),
+    ("Ligne directe", "Numéro donné dans l'avis avec le nom d'une personne, ou portable."),
+    ("Ligne du service", "Numéro du service des marchés ou de la commande publique : demandez le responsable "
+     "des achats de travaux, ou la personne nommée."),
+    ("Standard (vérifié)", "Numéro d'accueil officiel de l'organisme dans l'annuaire de l'administration "
+     "(service-public.fr) : demandez la personne nommée."),
+    ("Standard (probable)", "Le numéro en a la forme, sans confirmation par l'annuaire."),
+    ("Ordre des appels", "Par acheteur (rang de l'onglet « Acheteurs ») : personnes nommées d'abord, puis "
+     "consultations closes récemment (l'acheteur compare les offres), puis consultations ouvertes."),
+    ("Score", "1 point par appel d'offres de travaux (15 au plus), 0,25 par lot (10 au plus), 2 si l'acheteur a "
+     "publié cette semaine, 6 pour un bailleur social, 5 pour un aménageur, une SEM ou une SPL, 2 pour une "
+     "collectivité ; puis, une fois par acheteur : 3 si les critères qualitatifs pèsent 50 % ou plus, 2 pour "
+     "un accord-cadre avec remise en concurrence, 1 pour une procédure avec négociation, 2 si une date limite "
+     "tombe dans 7 à 28 jours. À score égal, la date limite la plus proche passe devant."),
+    ("Prospection par e-mail", "Adresse professionnelle, sujet lié à son métier, et toujours un moyen simple "
+     "de ne plus être contacté."),
 ]
 
 
-def tableur_appels(appels: list) -> bytes:
-    """Liste d'appels en CSV (point-virgule, UTF-8 avec BOM : s'ouvre tel quel dans Excel)."""
-    f = io.StringIO()
-    w = csv.writer(f, delimiter=";", lineterminator="\r\n")
-    w.writerow(COLONNES_APPELS)
-    for x in appels:
-        a = x.acheteur
-        w.writerow([
-            x.rang, a.nom, a.type_acheteur or "Autre acheteur public", a.score, x.numero,
-            x.nature_libelle, x.demander, x.fonction, x.phrase, x.avis.idweb, x.avis.objet,
-            x.avis.url, x.avis.datelimite.strftime("%d/%m/%Y") if x.avis.datelimite else "",
-            x.statut, a.contact, a.profil_acheteur, "", "", "",
-        ])
-    return ("\ufeff" + f.getvalue()).encode("utf-8")
+def _consultations(a) -> str:
+    lignes = []
+    for x in a.derniers_avis:
+        etat = ""
+        if x.datelimite:
+            etat = f", date limite {x.datelimite:%d/%m}" + (
+                f" : {x.jours_restants} j" if x.jours_restants is not None and x.jours_restants >= 0 else " : close")
+        parue = f"parue le {x.dateparution:%d/%m}" if x.dateparution else ""
+        lignes.append(f"{x.objet} ({parue}{etat}) {x.url}")
+    return "\n".join(lignes)
+
+
+def tableur_prospects(acheteurs: list, appels: list) -> bytes:
+    """Classeur Excel : onglets « Appels », « Acheteurs » et « Mode d'emploi »."""
+    from openpyxl import Workbook
+    from openpyxl.styles import Alignment, Font, PatternFill
+
+    from .prospects import NATURE_NUMERO
+
+    wb = Workbook()
+
+    def feuille(ws, colonnes, lignes, largeurs):
+        ws.append(colonnes)
+        for c in ws[1]:
+            c.font = Font(bold=True)
+            c.fill = PatternFill("solid", fgColor="EEF6F1")
+            c.alignment = Alignment(vertical="top", wrap_text=True)
+        for ligne in lignes:
+            ws.append(ligne)
+        for i, largeur in enumerate(largeurs, 1):
+            ws.column_dimensions[ws.cell(1, i).column_letter].width = largeur
+        for row in ws.iter_rows(min_row=2):
+            for c in row:
+                c.alignment = Alignment(vertical="top", wrap_text=True)
+                if isinstance(c.value, str) and c.value.startswith("http"):
+                    c.hyperlink, c.style = c.value, "Hyperlink"
+                    c.alignment = Alignment(vertical="top", wrap_text=True)
+        ws.freeze_panes = "C2"
+        ws.auto_filter.ref = ws.dimensions
+
+    ws = wb.active
+    ws.title = "Appels"
+    feuille(ws, COLONNES_APPELS, [[
+        x.rang, x.acheteur.nom, x.numero, x.nature_libelle, x.demander, x.fonction, x.avis.objet,
+        x.avis.idweb, x.avis.url, x.statut, x.phrase, x.acheteur.contact, x.acheteur.profil_acheteur,
+        "", "", "",
+    ] for x in appels], [6, 28, 16, 18, 26, 24, 45, 11, 20, 28, 60, 28, 20, 12, 30, 14])
+
+    feuille(wb.create_sheet("Acheteurs"), COLONNES_ACHETEURS, [[
+        i, a.nom, a.type_acheteur or "Autre acheteur public",
+        "Nouveau" if not a.deja_signale else f"Déjà signalé le {a.deja_signale}", a.score,
+        "\n".join(a.raisons), len(a.avis), a.nb_lots, a.nb_recents, a.contact, a.telephone,
+        NATURE_NUMERO.get(a.nature_telephone, ""), a.libelle_telephone, a.source_telephone[1],
+        a.profil_acheteur, a.lien_annuaire, _consultations(a),
+    ] for i, a in enumerate(acheteurs, 1)], [6, 30, 20, 16, 7, 40, 12, 7, 10, 28, 16, 18, 26, 20, 20, 20, 70])
+
+    ws = wb.create_sheet("Mode d'emploi")
+    for titre, texte in MODE_D_EMPLOI:
+        ws.append([titre, texte])
+    ws.column_dimensions["A"].width, ws.column_dimensions["B"].width = 24, 110
+    for row in ws.iter_rows():
+        row[0].font = Font(bold=True)
+        for c in row:
+            c.alignment = Alignment(vertical="top", wrap_text=True)
+
+    f = io.BytesIO()
+    wb.save(f)
+    return f.getvalue()
 
 
 def construire_prospects(acheteurs: list, aujourdhui: date, config: dict, nb_avis: int) -> Courriel:
@@ -124,10 +203,10 @@ def construire_prospects(acheteurs: list, aujourdhui: date, config: dict, nb_avi
                nouveaux=sum(1 for a in acheteurs if not a.deja_signale), appels=appels,
                nb_appelables=len({x.rang for x in appels}))
     env = _env()
-    fichier = f"appels-prospects-{lundi.isoformat()}.csv"
+    fichier = f"prospects-{lundi.isoformat()}.xlsx"
     return Courriel(sujet, env.get_template("prospects.txt.j2").render(**ctx),
                     env.get_template("prospects.html.j2").render(**ctx),
-                    [(fichier, tableur_appels(appels))] if appels else [])
+                    [(fichier, tableur_prospects(acheteurs, appels))] if acheteurs else [])
 
 
 def envoyer(c: Courriel) -> None:
@@ -165,7 +244,8 @@ def envoyer(c: Courriel) -> None:
     msg.set_content(c.texte)
     msg.add_alternative(c.html, subtype="html")
     for nom, contenu in c.pieces_jointes:
-        msg.add_attachment(contenu, maintype="text", subtype="csv", filename=nom)
+        msg.add_attachment(contenu, maintype="application",
+                           subtype="vnd.openxmlformats-officedocument.spreadsheetml.sheet", filename=nom)
 
     contexte = ssl.create_default_context()
     if port == 465:

@@ -91,9 +91,15 @@ def test_bonus_flux2_et_courriel(config):
     assert acheteur.score == 22  # 16,75 + 3 + 2, arrondi
 
     c = construire_prospects([acheteur], AUJOURDHUI, config, len(avis))
-    for texte in ("qualitatif 60 %", "accord-cadre avec remise en concurrence", "échéance dans 24 jours"):
-        assert texte in c.html and texte in c.texte
-    assert "date limite 13/11 : 24 j" in c.texte
+    # Raisons du score et consultations : onglet « Acheteurs » du tableur joint.
+    import io
+
+    from openpyxl import load_workbook
+    ws = load_workbook(io.BytesIO(c.pieces_jointes[0][1]))["Acheteurs"]
+    onglet = " ".join(str(v) for r in ws.iter_rows(values_only=True) for v in r if v is not None)
+    for texte in ("qualitatif 60 %", "accord-cadre avec remise en concurrence", "échéance dans 24 jours",
+                  "date limite 13/11 : 24 j"):
+        assert texte in onglet
 
 
 def test_tri_a_score_egal_par_echeance(config):

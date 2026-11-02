@@ -27,6 +27,21 @@ def avis():
     return json.loads((FIXTURES / "travaux.json").read_text(encoding="utf-8"))
 
 
+def classeur(c):
+    """Onglets du tableur joint à l'e-mail : {nom d'onglet: lignes de valeurs}."""
+    import io
+
+    from openpyxl import load_workbook
+    [(nom, contenu)] = c.pieces_jointes
+    assert nom.endswith(".xlsx")
+    wb = load_workbook(io.BytesIO(contenu))
+    return {ws.title: [list(r) for r in ws.iter_rows(values_only=True)] for ws in wb}
+
+
+def texte_onglet(c, onglet):
+    return "\n".join(" | ".join("" if v is None else str(v) for v in r) for r in classeur(c)[onglet])
+
+
 def par_id(avis, idweb):
     return next(a for a in avis if a["idweb"] == idweb)
 
@@ -74,7 +89,8 @@ def test_courriel_et_suivi(tmp_path, avis, config):
     acheteurs = p.noter(p.agreger(avis, AUJOURDHUI), AUJOURDHUI)
     c = construire_prospects(acheteurs, AUJOURDHUI, config, len(avis))
     assert c.sujet == "[Prospects BOAMP] 1 acheteur de travaux actif, semaine du 19/10/2026"
-    assert "Nouveau" in c.html and "https://www.boamp.fr/avis/detail/26-100545" in c.html
+    assert "https://www.boamp.fr/avis/detail/26-100545" in c.html
+    assert "Nouveau" in texte_onglet(c, "Acheteurs")
 
     j = Journal(tmp_path / "veille.db")
     assert not j.envoi_de_type_depuis("prospects", date(2026, 10, 19))
@@ -105,11 +121,13 @@ def test_colonnes_contact_dans_le_courriel(avis, config):
     p = Prospection(config)
     acheteurs = p.noter(p.agreger(avis, AUJOURDHUI), AUJOURDHUI)
     c = construire_prospects(acheteurs, AUJOURDHUI, config, len(avis))
+    # Le détail des acheteurs est dans l'onglet « Acheteurs » du tableur joint.
+    entetes = classeur(c)["Acheteurs"][0]
     for entete in ("E-mail", "Téléphone", "Profil acheteur"):
-        assert f">{entete}</th>" in c.html
-    assert 'href="tel:0499524524"' in c.html
-    assert 'href="http://marches-publics.info"' in c.html
-    assert "Téléphone  : 04 99 52 45 24" in c.texte
+        assert entete in entetes
+    onglet = texte_onglet(c, "Acheteurs")
+    assert "04 99 52 45 24" in onglet and "http://marches-publics.info" in onglet
+    assert 'href="tel:0499524524"' in c.html  # liste d'appels
 
 
 def test_adresses_sans_reponse_ecartees():
@@ -151,8 +169,9 @@ def test_telephone_le_plus_utile_dans_le_courriel(avis, config):
     assert (arac.telephone, arac.nature_telephone, arac.libelle_telephone) == \
         ("04 99 52 45 24", "service", "Service Marchés")
     c = construire_prospects([arac], AUJOURDHUI, config, len(avis))
-    assert "Ligne du service" in c.html and "Numéro de standard" in c.html  # colonne et légende
-    assert "Téléphone  : 04 99 52 45 24 — ligne du service : Service Marchés" in c.texte
+    onglet = texte_onglet(c, "Acheteurs")
+    assert "04 99 52 45 24 | ligne du service | Service Marchés" in onglet
+    assert "Standard (vérifié)" in texte_onglet(c, "Mode d'emploi")
 
 
 def test_nature_du_telephone_cas_reels():
@@ -183,13 +202,11 @@ def test_elu_reconnu_sans_sa_fonction_et_source_du_numero(avis, config):
     arac = p.noter(p.agreger(avis, AUJOURDHUI), AUJOURDHUI)[0]
     assert arac.source_telephone == ("26-100545", "https://www.boamp.fr/avis/detail/26-100545")
     c = construire_prospects([arac], AUJOURDHUI, config, len(avis))
-    assert "Source : avis 26-100545" in c.html
-    assert "source : https://www.boamp.fr/avis/detail/26-100545" in c.texte
+    assert "Service Marchés | https://www.boamp.fr/avis/detail/26-100545" in texte_onglet(c, "Acheteurs")
 
 
 def test_liste_d_appels(avis, config):
     """Une ligne par contact nommé dans un avis : numéro, personne à demander, consultation."""
-    from veille_boamp.mail import tableur_appels
     from veille_boamp.prospects import Acheteur, AvisTravaux, liste_appels
 
     p = Prospection(config)
@@ -226,18 +243,25 @@ def test_liste_d_appels(avis, config):
     assert appels[1].phrase.startswith("Bonjour, je souhaiterais parler à Justinien Belabbas-Weil, le contact")
     assert appels[0].statut.startswith("close le") and "analyse des offres" in appels[0].statut
 
-    csv = tableur_appels(appels).decode("utf-8-sig").splitlines()
-    assert csv[0].startswith("Rang;Acheteur;") and csv[0].endswith("Appelé le;Résultat;À rappeler le")
-    assert ";M FEREYRE;Responsable d'opérations routières;" in csv[1]
+    from veille_boamp.mail import COLONNES_APPELS
+    assert COLONNES_APPELS[-3:] == ["Appelé le", "Résultat", "À rappeler le"]
 
 
 def test_tableur_joint_au_courriel(avis, config):
     p = Prospection(config)
     acheteurs = p.noter(p.agreger(avis, AUJOURDHUI), AUJOURDHUI)
     c = construire_prospects(acheteurs, AUJOURDHUI, config, len(avis))
-    assert [nom for nom, _ in c.pieces_jointes] == ["appels-prospects-2026-10-19.csv"]
+    assert [nom for nom, _ in c.pieces_jointes] == ["prospects-2026-10-19.xlsx"]
     assert "Liste d'appels (2 contacts chez 1 acheteur)" in c.html
     assert "LISTE D'APPELS (2 contacts chez 1 acheteur)" in c.texte
+    # Mise en forme demandée le 02/11.
+    assert "Chacun reçoit et compare" not in c.html and "Chacun reçoit et compare" not in c.texte
+    assert "Les noms et numéros de contact sont issus de l'avis. La même liste est jointe en tableur Excel" in c.html
+    assert "Détail des acheteurs" not in c.html and ">Score</th>" not in c.html
+    onglets = classeur(c)
+    assert list(onglets) == ["Appels", "Acheteurs", "Mode d'emploi"]
+    assert onglets["Appels"][1][:5] == [1, "Spl Arac Occitanie", "04 99 52 45 24", "ligne du service", "Service Marchés"]
+    assert onglets["Acheteurs"][1][:5] == [1, "Spl Arac Occitanie", "Aménageur, SEM, SPL", "Nouveau", 17]
 
 
 def test_liste_d_appels_cas_reels():

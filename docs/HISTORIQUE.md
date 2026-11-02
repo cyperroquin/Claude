@@ -145,3 +145,13 @@ publics. Deux usages :
   écartées ; personnes avant services, puis consultations closes récemment
   (l'acheteur compare les offres), puis ouvertes. Réglages `prospects.appels`.
   Le tableur a des colonnes vides « Appelé le », « Résultat », « À rappeler le ».
+- Mise en forme (demande de Cyrille) : phrase « Chacun reçoit et compare… »
+  retirée de l'introduction ; paragraphe de la liste d'appels remplacé par
+  « Les noms et numéros de contact sont issus de l'avis. La même liste est
+  jointe en tableur Excel, avec des colonnes pour suivre vos appels. » ; le
+  tableau détaillé des acheteurs quitte le corps de l'e-mail. Pièce jointe
+  désormais un vrai fichier Excel `prospects-AAAA-MM-JJ.xlsx` à trois
+  onglets : « Appels » (liste d'appels + colonnes de suivi), « Acheteurs »
+  (ancien tableau détaillé, avec raisons du score et source du numéro) et
+  « Mode d'emploi » (natures de numéros, ordre des appels, calcul du score).
+  Dépendance ajoutée : openpyxl.
