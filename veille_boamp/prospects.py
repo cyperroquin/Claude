@@ -47,6 +47,8 @@ class Acheteur:
     siret: str = ""
     emails: Counter = field(default_factory=Counter)
     telephones: Counter = field(default_factory=Counter)
+    # Pour chaque numéro : les contacts nommés à côté dans les avis (nom, fonction).
+    contacts_tel: dict = field(default_factory=dict)
     profil_acheteur: str = ""
     departements: Counter = field(default_factory=Counter)
     type_acheteur: str = ""
@@ -65,8 +67,32 @@ class Acheteur:
         return self.emails.most_common(1)[0][0] if self.emails else ""
 
     @property
+    def _tel_choisi(self) -> tuple[str, str, str]:
+        """(numéro, nature, libellé) du numéro le plus utile pour prospecter :
+        la ligne d'un contact nommé, sinon celle d'un service, sinon le standard."""
+        if not self.telephones:
+            return "", "", ""
+        ordre = {"contact": 0, "service": 1, "standard": 2}
+        choix = []
+        for num, nb in self.telephones.items():
+            nature, libelle = nature_telephone(num, self.contacts_tel.get(num, set()))
+            choix.append((ordre[nature], -nb, num, nature, libelle))
+        _, _, num, nature, libelle = min(choix)
+        return num, nature, libelle
+
+    @property
     def telephone(self) -> str:
-        return self.telephones.most_common(1)[0][0] if self.telephones else ""
+        return self._tel_choisi[0]
+
+    @property
+    def nature_telephone(self) -> str:
+        """« contact », « service » ou « standard » (vide si pas de numéro)."""
+        return self._tel_choisi[1]
+
+    @property
+    def libelle_telephone(self) -> str:
+        """Nom du contact ou du service joint par ce numéro (vide pour un standard)."""
+        return self._tel_choisi[2]
 
     @property
     def lien_annuaire(self) -> str:
@@ -156,10 +182,43 @@ def _ids_acheteur_eforms(donnees) -> set[str]:
     return ids
 
 
-def _telephones(donnees) -> list[str]:
-    """Téléphone de l'acheteur : `telContact` (formulaires nationaux), ou le contact
-    de l'organisation acheteuse en eForms (pas la plateforme ni le tribunal)."""
-    out = [_telephone(_texte(v)) for k, v in parcourir(donnees) if k == "telContact" and _texte(v)]
+def _dicts(obj):
+    """Tous les dictionnaires de l'arbre JSON (pour lire un numéro avec ses voisins)."""
+    if isinstance(obj, dict):
+        yield obj
+        for v in obj.values():
+            yield from _dicts(v)
+    elif isinstance(obj, list):
+        for v in obj:
+            yield from _dicts(v)
+
+
+def _contacts_telephoniques(donnees) -> list[tuple[str, str, str]]:
+    """(numéro, nom du contact, fonction) de l'acheteur dans un avis.
+
+    - formulaire national : `telContact`, à côté de `nomContact` ;
+    - MAPA : `coord.tel` de l'organisme, à côté du `correspondantPRM` ;
+    - eForms : le contact de l'organisation acheteuse (pas la plateforme ni le
+      tribunal), avec `cbc:Name` et `cbc:JobTitle`.
+    """
+    out = []
+    for d in _dicts(donnees):
+        if _texte(d.get("telContact")):
+            nom, fonction = _separer_fonction(_texte(d.get("nomContact")))
+            out.append((_telephone(_texte(d["telContact"])), nom, fonction))
+    if out:
+        return out
+    for d in _dicts(donnees):
+        coord = d.get("coord")
+        if isinstance(coord, dict) and _texte(coord.get("tel")):
+            prm = d.get("correspondantPRM")
+            nom = fonction = ""
+            if isinstance(prm, dict):
+                nom = " ".join(_texte(prm.get(c)) for c in ("civilite", "pren", "nom") if _texte(prm.get(c)))
+                if nom in ("M", "Mme", "Mlle"):
+                    nom = ""
+                fonction = _texte(prm.get("fonc"))
+            out.append((_telephone(_texte(coord["tel"])), nom, fonction))
     if out:
         return out
     ids = _ids_acheteur_eforms(donnees)
@@ -170,8 +229,79 @@ def _telephones(donnees) -> list[str]:
             if isinstance(ident, dict) and _texte(ident.get("cbc:ID")) in ids:
                 contact = v.get("cac:Contact") or {}
                 if isinstance(contact, dict) and _texte(contact.get("cbc:Telephone")):
-                    out.append(_telephone(_texte(contact["cbc:Telephone"])))
+                    nom, fonction = _separer_fonction(_texte(contact.get("cbc:Name")))
+                    fonction = _texte(contact.get("cbc:JobTitle")) or fonction
+                    out.append((_telephone(_texte(contact["cbc:Telephone"])), nom, fonction))
     return out
+
+
+def _telephones(donnees) -> list[str]:
+    """Téléphones de l'acheteur dans un avis (sans le nom du contact)."""
+    return [num for num, _, _ in _contacts_telephoniques(donnees)]
+
+
+def _separer_fonction(texte: str) -> tuple[str, str]:
+    """« Karen PERRIN - Secrétaire Générale » → (« Karen PERRIN », « Secrétaire Générale »)."""
+    morceaux = re.split(r"\s+[-–—,/]\s+|\s*,\s*", texte, maxsplit=1)
+    nom = morceaux[0].strip()
+    return nom, (morceaux[1].strip() if len(morceaux) > 1 else "")
+
+
+# Nature d'un numéro de téléphone (prospection) --------------------------------
+_RE_CIVILITE = re.compile(r"^(m|mr|mme|mlle|madame|monsieur|mademoiselle)\b")
+# Mots qui désignent un service et non une personne.
+_RE_SERVICE = re.compile(
+    r"\b(service|services|direction|dir|departement|pole|cellule|bureau|mission|division|unite|"
+    r"commande|marche|marches|achat|achats|juridique|secretariat|cabinet|agence|centre|site|siege|"
+    r"accueil|standard|mairie|hotel|ville|commune|conseil|region|departemental|office|syndicat|"
+    r"communaute|metropole|habitat|logement|sa|sem|spl|opac|oph|dst|dga|dgs|dgst|equipe|groupe|"
+    r"administration|administratif|technique|techniques|patrimoine|travaux|batiment|batiments|"
+    r"moyens|generaux|finances|affaires|contrats|consultation|consultations|contact|info|infos)\b"
+)
+# Services qui répondent au nom de tout l'organisme : c'est le standard.
+_RE_STANDARD = re.compile(r"\b(accueil|standard|mairie|hotel de ville|siege|secretariat general|"
+                          r"secretariat de mairie|reception)\b")
+# Élus : leur numéro dans l'avis est celui de la mairie ou de la collectivité.
+_RE_ELU = re.compile(r"\b(maire|president|presidente|vice president|vice presidente|adjoint|adjointe)\b")
+
+
+def _est_une_personne(nom: str) -> bool:
+    n = normaliser(nom)
+    if not n:
+        return False
+    if _RE_CIVILITE.match(n):
+        return True
+    mots = n.split()
+    return 2 <= len(mots) <= 4 and not _RE_SERVICE.search(n) and not any(c.isdigit() for c in n)
+
+
+def _libelle(nom: str, fonction: str) -> str:
+    return f"{nom} ({fonction})" if nom and fonction else nom or fonction
+
+
+def nature_telephone(numero: str, contacts) -> tuple[str, str]:
+    """Classe un numéro pour la prospection : (« contact » | « service » | « standard », libellé).
+
+    - « contact » : l'avis donne ce numéro avec le nom d'une personne ;
+    - « service » : avec le nom d'un service (service des marchés, direction…) ;
+    - « standard » : sans contact nommé, avec « accueil » ou « mairie », au nom d'un
+      élu (maire, président), partagé par plusieurs personnes différentes, ou
+      terminé par 00 (numéro d'accueil typique).
+    C'est une estimation à partir de l'avis : le BOAMP ne dit pas si c'est un standard.
+    """
+    chiffres = re.sub(r"\D", "", numero)
+    contacts = [(n, f) for n, f in contacts if n or f]
+    personnes = {normaliser(n): (n, f) for n, f in contacts
+                 if _est_une_personne(n) and not _RE_ELU.search(normaliser(f))}
+    if chiffres.endswith("00") or len(personnes) >= 2:
+        return "standard", ""
+    if personnes:
+        return "contact", _libelle(*sorted(personnes.values())[0])
+    services = [(n, f) for n, f in contacts
+                if n and not _RE_STANDARD.search(normaliser(n)) and not _RE_ELU.search(normaliser(f))]
+    if services:
+        return "service", _libelle(*sorted(services)[0])
+    return "standard", ""
 
 
 def _profil_acheteur(donnees) -> str:
@@ -235,7 +365,9 @@ class Prospection:
             ))
             a.siret = a.siret or _siret(donnees)
             a.emails.update(_emails(donnees, self.plateformes))
-            a.telephones.update(_telephones(donnees))
+            for num, nom, fonction in _contacts_telephoniques(donnees):
+                a.telephones[num] += 1
+                a.contacts_tel.setdefault(num, set()).add((nom, fonction))
             # Profil acheteur de l'avis le plus récent qui en donne un.
             profil = _profil_acheteur(donnees)
             if profil and (not a.profil_acheteur or (avis.dateparution or date.min) >= a._date_profil):

@@ -99,3 +99,20 @@ publics. Deux usages :
 - Depuis le 20/10, l'environnement cloud Claude utilisé n'arrivait plus à
   joindre l'API du BOAMP (coupures réseau) ; GitHub Actions n'est pas touché.
   Tester sur GitHub en mode `essai`.
+
+### 02/11 — Nature du numéro de téléphone (flux 2)
+
+- Les e-mails arrivent désormais sur `cyrille.perroquin@bulq.ai` (secret
+  `EMAIL_DESTINATAIRE`, nouveau compte Resend ouvert par Cyrille avec cette
+  adresse, nouvelle clé dans `RESEND_API_KEY`). Tests d'envoi réussis pour les
+  deux flux.
+- Demande de Cyrille : le but est de prospecter ; un numéro de standard ne
+  mène pas au responsable des achats de travaux. La colonne Téléphone précise
+  donc la nature du numéro, estimée à partir de l'avis :
+  « Contact direct » (numéro donné avec le nom d'une personne, avec sa
+  fonction), « Ligne du service » (service des marchés, direction…) ou
+  « Numéro de standard » (pas de contact nommé, accueil, mairie, élu, numéro
+  partagé par plusieurs personnes ou terminé par 00). Quand un acheteur a
+  plusieurs numéros, le contact direct passe avant le service, puis le
+  standard. Les numéros des avis MAPA (`coord.tel`) sont maintenant lus aussi.
+  Sélection et scores inchangés.

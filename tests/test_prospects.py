@@ -116,3 +116,40 @@ def test_adresses_sans_reponse_ecartees():
     d = {"adresseMailContact": "nepasrepondre@grandest.fr", "cac:Contact": {"cbc:ElectronicMail": "marches@grandest.fr"}}
     assert _emails(d, []) == ["marches@grandest.fr"]
     assert _emails({"adresseMailContact": "no-reply@ville.fr"}, []) == []
+
+
+def test_nature_du_telephone(avis):
+    """Prospection : distinguer le standard d'un numéro de contact ou de service."""
+    from veille_boamp.prospects import _contacts_telephoniques, nature_telephone
+
+    def nature(idweb):
+        num, nom, fonction = _contacts_telephoniques(charger_json(par_id(avis, idweb)["donnees"]))[0]
+        return nature_telephone(num, {(nom, fonction)})
+
+    # Numéro donné avec le nom d'une personne.
+    assert nature("26-99541") == ("contact", "FEMENIAS Stéphane")
+    # MAPA : le numéro de l'organisme, avec le correspondant et sa fonction.
+    assert nature("26-100123") == ("contact", "M Damien PELLEN (Directeur des Achats, de la Logistique et de l'Hôtellerie)")
+    # Numéro d'un service.
+    assert nature("26-100545") == ("service", "Service Marchés")
+    # Numéro terminé par 00 : accueil typique.
+    assert nature("26-99504") == ("standard", "")
+    # Sans contact, à l'accueil, au nom d'un élu, ou partagé par plusieurs personnes : standard.
+    assert nature_telephone("04 77 12 34 56", set()) == ("standard", "")
+    assert nature_telephone("04 77 12 34 56", {("Accueil de la mairie", "")}) == ("standard", "")
+    assert nature_telephone("05 62 13 48 10", {("CORTIJO Denise", "Maire")}) == ("standard", "")
+    assert nature_telephone("04 77 12 34 56", {("Mme Durand", ""), ("M. Martin", "")}) == ("standard", "")
+    assert nature_telephone("04 77 71 24 60", {("Karen PERRIN", "Secrétaire Générale")}) == \
+        ("contact", "Karen PERRIN (Secrétaire Générale)")
+
+
+def test_telephone_le_plus_utile_dans_le_courriel(avis, config):
+    p = Prospection(config)
+    arac = p.noter(p.agreger(avis, AUJOURDHUI), AUJOURDHUI)[0]
+    # Deux numéros pour l'ARAC : la ligne du service marchés passe avant le standard.
+    assert set(arac.telephones) == {"04 99 52 45 24", "05 67 72 71 00"}
+    assert (arac.telephone, arac.nature_telephone, arac.libelle_telephone) == \
+        ("04 99 52 45 24", "service", "Service Marchés")
+    c = construire_prospects([arac], AUJOURDHUI, config, len(avis))
+    assert "Ligne du service" in c.html and "Numéro de standard" in c.html  # colonne et légende
+    assert "Téléphone  : 04 99 52 45 24 — ligne du service : Service Marchés" in c.texte

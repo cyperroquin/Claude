@@ -47,7 +47,11 @@
           {% if a.lien_annuaire %}<br><a href="{{ a.lien_annuaire }}" style="font-size:12px;">Fiche entreprise</a>{% endif %}
         </td>
         <td style="border-bottom:1px solid #e5e5e5;font-size:13px;white-space:nowrap;">
-          {% if a.telephone %}<a href="tel:{{ a.telephone | replace(' ', '') }}">{{ a.telephone }}</a>{% else %}<span style="color:#888;">non indiqué</span>{% endif %}
+          {% if a.telephone %}<a href="tel:{{ a.telephone | replace(' ', '') }}">{{ a.telephone }}</a><br>
+          {% if a.nature_telephone == "contact" %}<span style="font-size:12px;color:#0b6e4f;font-weight:bold;">Contact direct</span><br><span style="font-size:12px;color:#444;white-space:normal;">{{ a.libelle_telephone }}</span>
+          {% elif a.nature_telephone == "service" %}<span style="font-size:12px;color:#b26a00;font-weight:bold;">Ligne du service</span><br><span style="font-size:12px;color:#444;white-space:normal;">{{ a.libelle_telephone }}</span>
+          {% else %}<span style="font-size:12px;color:#888;">Numéro de standard</span>{% endif %}
+          {% else %}<span style="color:#888;">non indiqué</span>{% endif %}
         </td>
         <td style="border-bottom:1px solid #e5e5e5;font-size:13px;">
           {% if a.profil_acheteur %}<a href="{{ a.profil_acheteur }}">Ouvrir</a>{% else %}<span style="color:#888;">non indiqué</span>{% endif %}
@@ -67,6 +71,10 @@
   <ol>
     <li>Commencez par les acheteurs marqués « Nouveau » en haut de la liste.</li>
     <li>Ouvrez une ou deux de leurs consultations : le nombre de lots et la nature des travaux disent combien d'offres ils vont devoir comparer.</li>
+    <li>Téléphone : « Contact direct » = le numéro donné dans l'avis avec le nom d'une personne, à appeler en priorité.
+      « Ligne du service » = le service des marchés ou des achats : demandez le responsable des achats de travaux.
+      « Numéro de standard » = l'accueil général de l'organisme : appelez si vous voulez, mais il faudra vous faire passer le bon service.
+      Ce classement est une estimation à partir de l'avis.</li>
     <li>Cherchez le bon interlocuteur (direction de la maîtrise d'ouvrage, du patrimoine ou des achats), par exemple sur LinkedIn. L'adresse indiquée est souvent celle du service des marchés.</li>
     <li>Écrivez-lui en citant une consultation précise et ce que BulQ lui aurait fait gagner pour l'analyser.</li>
   </ol>
