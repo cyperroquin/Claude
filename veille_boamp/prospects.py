@@ -174,7 +174,7 @@ def _texte(v) -> str:
 def _telephone(brut: str) -> str:
     """Numéro lisible : « +33 0546370035 » → « 05 46 37 00 35 » ; sinon tel quel."""
     chiffres = re.sub(r"\D", "", brut or "")
-    if chiffres.startswith("33") and len(chiffres) >= 11:
+    if chiffres.startswith("33") and (len(chiffres) >= 11 or (brut or "").strip().startswith("+")):
         chiffres = "0" + chiffres[2:].lstrip("0")
     if len(chiffres) == 10 and chiffres.startswith("0"):
         return " ".join(chiffres[i:i + 2] for i in range(0, 10, 2))
