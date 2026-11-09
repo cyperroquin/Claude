@@ -259,7 +259,8 @@ def test_tableur_joint_au_courriel(avis, config):
     assert "Bonjour, je" not in c.html and "Bonjour, je" not in c.texte  # phrases d'accroche retirées
     onglets = classeur(c)
     assert list(onglets) == ["Appels", "Acheteurs", "Mode d'emploi"]
-    assert onglets["Appels"][1][:5] == [1, "Spl Arac Occitanie", "04 99 52 45 24", "ligne du service", "Service Marchés"]
+    assert onglets["Appels"][1][:6] == [1, "Spl Arac Occitanie", "Nouveau", "04 99 52 45 24", "ligne du service",
+                                        "Service Marchés"]
     assert onglets["Acheteurs"][1][:5] == [1, "Spl Arac Occitanie", "Aménageur, SEM, SPL", "Nouveau", 17]
 
 
@@ -289,3 +290,22 @@ def test_liste_d_appels_cas_reels():
     b.sources_tel["03 87 61 66 10"] = [("26-101171", "u")]
     [x] = liste_appels([b])
     assert (x.numero, x.demander, x.avis.idweb) == ("03 87 61 66 10", "service des marchés publics", "26-101171")
+
+
+def test_nouveaux_acheteurs_visibles_dans_la_liste_d_appels(avis, config):
+    """Demande du 09/11 : savoir quels acheteurs sont nouveaux, directement dans la liste d'appels."""
+    p = Prospection(config)
+    acheteurs = p.noter(p.agreger(avis, AUJOURDHUI), AUJOURDHUI)
+    c = construire_prospects(acheteurs, AUJOURDHUI, config, len(avis))
+    assert "1 acheteur apparait pour la première fois :\n    <strong>Spl Arac Occitanie</strong>" in c.html
+    assert "Spl Arac Occitanie — NOUVEAU — 04 99 52 45 24" in c.texte
+    assert c.html.count(">Nouveau</span>") == 2  # une étiquette par ligne d'appel
+
+    acheteurs[0].deja_signale = "2026-10-12"
+    c = construire_prospects(acheteurs, AUJOURDHUI, config, len(avis))
+    assert "Aucun nouvel acheteur cette semaine" in c.html and "Aucun nouvel acheteur cette semaine" in c.texte
+    assert "Déjà signalé le 12/10" in c.html
+    assert "Spl Arac Occitanie (déjà signalé le 12/10) — 04 99 52 45 24" in c.texte
+    onglets = classeur(c)
+    assert onglets["Appels"][1][2] == "Déjà signalé le 12/10/2026"
+    assert onglets["Acheteurs"][1][3] == "Déjà signalé le 12/10/2026"

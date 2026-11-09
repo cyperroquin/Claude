@@ -158,3 +158,13 @@ publics. Deux usages :
 - Phrases d'accroche (« Bonjour, je souhaiterais parler à… ») retirées de la
   liste d'appels, dans l'e-mail comme dans le classeur : jugées inutiles par
   Cyrille.
+
+### 09/11 — Nouveaux acheteurs visibles dans la liste d'appels
+
+- E-mail du lundi bien parti (7 h 05), mais rangé par Gmail dans l'onglet
+  « Mises à jour » : Cyrille crée un filtre (expéditeur onboarding@resend.dev
+  → Principale). La veille quotidienne n'avait rien à envoyer.
+- Demande de Cyrille : « 3 acheteurs apparaissent pour la première fois »,
+  mais lesquels ? L'introduction les nomme désormais, et chaque ligne de la
+  liste d'appels porte « Nouveau » ou « Déjà signalé le JJ/MM » (e-mail et
+  colonne « Nouveau ? » de l'onglet « Appels » du classeur).

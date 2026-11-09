@@ -1,14 +1,14 @@
 {{ sujet }}
 
 Les maîtres d'ouvrage qui ont publié le plus d'appels d'offres de travaux ces {{ jours }} derniers jours ({{ nb_avis }} avis analysés).
-{{ nouveaux }} acheteur(s) apparaissent pour la première fois.
+{% if noms_nouveaux %}{{ nouveaux }} acheteur(s) apparaissent pour la première fois : {{ noms_nouveaux | join(", ") }} (marqués NOUVEAU ci-dessous).{% else %}Aucun nouvel acheteur cette semaine : tous ont déjà été signalés.{% endif %}
 {% if appels %}
 
 LISTE D'APPELS ({{ appels | length }} contact{{ 's' if appels | length > 1 }} chez {{ nb_appelables }} acheteur{{ 's' if nb_appelables > 1 }})
 Les noms et numéros de contact sont issus de l'avis. La même liste est jointe en tableur Excel, avec des colonnes pour suivre vos appels.
 
 {% for x in appels %}
-{{ x.rang }}. {{ x.acheteur.nom }} — {{ x.numero }} ({{ x.nature_libelle }})
+{{ x.rang }}. {{ x.acheteur.nom }}{{ " — NOUVEAU" if not x.acheteur.deja_signale else " (déjà signalé le " ~ (x.acheteur.deja_signale | jjmm) ~ ")" }} — {{ x.numero }} ({{ x.nature_libelle }})
    Demander : {{ x.demander }}{% if x.fonction %} ({{ x.fonction }}){% endif %}
 
    À propos : {{ x.objet_court }} — avis {{ x.avis.idweb }}, {{ x.statut }}

@@ -6,7 +6,8 @@
   <p style="margin-top:0;color:#555;">
     Les maîtres d'ouvrage qui ont publié le plus d'appels d'offres de travaux ces {{ jours }} derniers jours
     ({{ nb_avis }} avis analysés).
-    {{ nouveaux }} acheteur{{ 's' if nouveaux > 1 }} apparai{{ 'ssent' if nouveaux > 1 else 't' }} pour la première fois.
+    {% if noms_nouveaux %}{{ nouveaux }} acheteur{{ 's' if nouveaux > 1 }} apparai{{ 'ssent' if nouveaux > 1 else 't' }} pour la première fois :
+    <strong>{{ noms_nouveaux | join(", ") }}</strong> (marqué{{ 's' if nouveaux > 1 }} « Nouveau » ci-dessous).{% else %}Aucun nouvel acheteur cette semaine : tous ont déjà été signalés.{% endif %}
   </p>
 
   {% if appels %}
@@ -28,7 +29,8 @@
     {% for x in appels %}
       <tr style="vertical-align:top;">
         <td style="border-bottom:1px solid #e5e5e5;">{{ x.rang }}</td>
-        <td style="border-bottom:1px solid #e5e5e5;"><strong>{{ x.acheteur.nom }}</strong></td>
+        <td style="border-bottom:1px solid #e5e5e5;"><strong>{{ x.acheteur.nom }}</strong><br>
+          {% if x.acheteur.deja_signale %}<span style="font-size:11px;color:#888;">Déjà signalé le {{ x.acheteur.deja_signale | jjmm }}</span>{% else %}<span style="font-size:11px;color:#fff;background:#0b6e4f;padding:1px 5px;border-radius:3px;font-weight:bold;">Nouveau</span>{% endif %}</td>
         <td style="border-bottom:1px solid #e5e5e5;white-space:nowrap;">
           <a href="tel:{{ x.numero | replace(' ', '') }}">{{ x.numero }}</a><br>
           <span style="font-size:11px;color:#888;">{{ x.nature_libelle }}</span>

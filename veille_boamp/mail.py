@@ -85,7 +85,7 @@ def construire_rien(aujourdhui: date, config: dict, nb_analyses: int) -> Courrie
 
 
 COLONNES_APPELS = [
-    "Rang", "Acheteur", "Téléphone", "Nature du numéro", "Demander", "Fonction", "Consultation",
+    "Rang", "Acheteur", "Nouveau ?", "Téléphone", "Nature du numéro", "Demander", "Fonction", "Consultation",
     "Avis", "Lien de l'avis", "Statut", "E-mail de l'acheteur", "Profil acheteur",
     "Appelé le", "Résultat", "À rappeler le",
 ]
@@ -99,6 +99,8 @@ MODE_D_EMPLOI = [
     ("Onglet « Appels »", "Une ligne par contact nommé dans un avis : le numéro, la personne (ou le service) "
      "à demander et la consultation dont parler. Même si le numéro est un standard, demandez la personne par "
      "son nom. Les colonnes « Appelé le », « Résultat » et « À rappeler le » servent à suivre vos appels."),
+    ("Nouveau ?", "« Nouveau » : l'acheteur apparaît pour la première fois dans cet e-mail. Sinon, la date du "
+     "premier e-mail qui l'a signalé : vous l'avez peut-être déjà appelé (voir votre tableur de cette semaine-là)."),
     ("Ligne directe", "Numéro donné dans l'avis avec le nom d'une personne, ou portable."),
     ("Ligne du service", "Numéro du service des marchés ou de la commande publique : demandez le responsable "
      "des achats de travaux, ou la personne nommée."),
@@ -127,6 +129,16 @@ def _consultations(a) -> str:
         parue = f"parue le {x.dateparution:%d/%m}" if x.dateparution else ""
         lignes.append(f"{x.objet} ({parue}{etat}) {x.url}")
     return "\n".join(lignes)
+
+
+def _nouveau(a) -> str:
+    """« Nouveau », ou « Déjà signalé le JJ/MM/AAAA » (date du premier e-mail qui le citait)."""
+    if not a.deja_signale:
+        return "Nouveau"
+    try:
+        return f"Déjà signalé le {date.fromisoformat(a.deja_signale):%d/%m/%Y}"
+    except ValueError:
+        return f"Déjà signalé le {a.deja_signale}"
 
 
 def tableur_prospects(acheteurs: list, appels: list) -> bytes:
@@ -160,14 +172,14 @@ def tableur_prospects(acheteurs: list, appels: list) -> bytes:
     ws = wb.active
     ws.title = "Appels"
     feuille(ws, COLONNES_APPELS, [[
-        x.rang, x.acheteur.nom, x.numero, x.nature_libelle, x.demander, x.fonction, x.avis.objet,
+        x.rang, x.acheteur.nom, _nouveau(x.acheteur), x.numero, x.nature_libelle, x.demander, x.fonction, x.avis.objet,
         x.avis.idweb, x.avis.url, x.statut, x.acheteur.contact, x.acheteur.profil_acheteur,
         "", "", "",
-    ] for x in appels], [6, 28, 16, 18, 26, 24, 45, 11, 20, 28, 28, 20, 12, 30, 14])
+    ] for x in appels], [6, 28, 16, 16, 18, 26, 24, 45, 11, 20, 28, 28, 20, 12, 30, 14])
 
     feuille(wb.create_sheet("Acheteurs"), COLONNES_ACHETEURS, [[
         i, a.nom, a.type_acheteur or "Autre acheteur public",
-        "Nouveau" if not a.deja_signale else f"Déjà signalé le {a.deja_signale}", a.score,
+        _nouveau(a), a.score,
         "\n".join(a.raisons), len(a.avis), a.nb_lots, a.nb_recents, a.contact, a.telephone,
         NATURE_NUMERO.get(a.nature_telephone, ""), a.libelle_telephone, a.source_telephone[1],
         a.profil_acheteur, a.lien_annuaire, _consultations(a),
@@ -201,6 +213,7 @@ def construire_prospects(acheteurs: list, aujourdhui: date, config: dict, nb_avi
     ctx = dict(sujet=sujet, aujourdhui=aujourdhui, acheteurs=acheteurs, nb_avis=nb_avis,
                jours=p.get("jours", 90), jours_recents=p.get("jours_recents", 7),
                nouveaux=sum(1 for a in acheteurs if not a.deja_signale), appels=appels,
+               noms_nouveaux=[a.nom for a in acheteurs if not a.deja_signale],
                nb_appelables=len({x.rang for x in appels}))
     env = _env()
     fichier = f"prospects-{lundi.isoformat()}.xlsx"
