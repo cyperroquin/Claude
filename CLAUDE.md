@@ -1,11 +1,14 @@
 # Veille BOAMP pour BulQ — consignes pour Claude
 
 Répondre et écrire en français (messages, e-mails, commentaires, commits).
-L'utilisateur est Cyrille Perroquin ; il travaille pour Paul Ehrhardt (BulQ).
-Il n'est pas développeur : expliquer pas à pas, en termes simples.
+Projet mené d'octobre à novembre 2026 par Cyrille Perroquin pour Paul
+Ehrhardt (BulQ), puis transmis à un repreneur (fin novembre 2026) : à
+compléter avec son nom. Les utilisateurs ne sont pas développeurs : expliquer
+pas à pas, en termes simples.
 
-Avant toute modification, lire `docs/HISTORIQUE.md` : il retrace tout ce qui a
-été décidé depuis le cahier des charges initial, y compris ce qui a été refusé.
+Avant toute modification, lire `docs/PASSATION.md` (état actuel, comptes,
+accès, points de vigilance) et `docs/HISTORIQUE.md` (tout ce qui a été décidé
+depuis le cahier des charges initial, y compris ce qui a été refusé).
 
 ## Ce que fait le projet
 
@@ -16,8 +19,9 @@ Deux e-mails automatiques, construits à partir de l'API open data du BOAMP
   auxquelles BulQ peut répondre comme éditeur de logiciel. Tous les jours vers
   7 h 30 (Paris).
 - **Flux 2, prospects acheteurs** (`python -m veille_boamp --prospects`) : les
-  25 maîtres d'ouvrage qui publient le plus d'appels d'offres de travaux, avec
-  e-mail, téléphone et profil acheteur. Chaque lundi vers 7 h.
+  25 maîtres d'ouvrage qui publient le plus d'appels d'offres de travaux :
+  liste d'appels (numéro, personne à demander, consultation) et classeur Excel
+  joint. Chaque lundi vers 7 h.
 
 Tous les critères sont dans `config.yaml`. Le README détaille les commandes.
 
@@ -41,3 +45,5 @@ Tous les critères sont dans `config.yaml`. Le README détaille les commandes.
   dernière consigne de l'utilisateur est « ne rien changer au flux ».
 - Pour vérifier sur des données réelles, lancer le workflow en mode `essai`
   et lire le journal ; ne pas envoyer d'e-mail sans le demander.
+- Le dépôt est **public** : ne jamais écrire de clé, de mot de passe ni
+  d'adresse e-mail personnelle dans les fichiers.

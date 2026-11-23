@@ -102,7 +102,7 @@ publics. Deux usages :
 
 ### 02/11 — Nature du numéro de téléphone (flux 2)
 
-- Les e-mails arrivent désormais sur `cyrille.perroquin@bulq.ai` (secret
+- Les e-mails arrivent désormais sur l'adresse bulq.ai de Cyrille (secret
   `EMAIL_DESTINATAIRE`, nouveau compte Resend ouvert par Cyrille avec cette
   adresse, nouvelle clé dans `RESEND_API_KEY`). Tests d'envoi réussis pour les
   deux flux.
@@ -168,3 +168,9 @@ publics. Deux usages :
   mais lesquels ? L'introduction les nomme désormais, et chaque ligne de la
   liste d'appels porte « Nouveau » ou « Déjà signalé le JJ/MM » (e-mail et
   colonne « Nouveau ? » de l'onglet « Appels » du classeur).
+
+### 23/11 — Passation
+
+- Cyrille passe la main : document `docs/PASSATION.md` (état, comptes,
+  transfert pas à pas, points de vigilance). `CLAUDE.md` le cite. Adresse
+  e-mail retirée de cet historique (dépôt public).
